@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_voice_record"
+        android:enabled="true"
+        android:icon="@drawable/ic_mic_shortcut"
+        android:shortcutShortLabel="@string/shortcut_voice_short"
+        android:shortcutLongLabel="@string/shortcut_voice_long">
+        <intent
+            android:action="com.myexpenses.app.ACTION_QUICK_VOICE"
+            android:targetPackage="com.myexpenses.app"
+            android:targetClass="com.myexpenses.app.quicklaunch.QuickVoiceActivity" />
+    </shortcut>
+</shortcuts>

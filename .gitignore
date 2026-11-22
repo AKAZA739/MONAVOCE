@@ -1,0 +1,25 @@
+# Gradle & Kotlin build caches
+.gradle/
+.kotlin/
+build/
+app/build/
+
+# Android Studio & IDE files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+captures/
+.navigation/
+
+# Local environment & signing secrets
+local.properties
+keystore.properties
+keystore/
+*.jks
+*.keystore
+
+# Large offline ASR models & generated release bundles (upload to GitHub Releases instead)
+offline_models/
+dist/
+.tmp*/
