@@ -45,9 +45,3 @@ data class ExpenseWithCategory(
     )
     val category: CategoryEntity?
 )
-
-data class CategoryTotalRow(
-    val categoryId: String,
-    val total: Double,
-    val count: Int
-)

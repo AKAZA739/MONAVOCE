@@ -1,6 +1,8 @@
+<div dir="rtl" lang="ar">
+
 # 02 — تدقيق الأمان والخصوصية الشامل (OWASP MASVS / MASTG & Privacy Audit)
 
-يستند هذا التقرير إلى معايير **OWASP Mobile Application Security Verification Standard (MASVS v2.1)** ودليل اختبار أمان تطبيقات الهواتف **(MASTG)** وتصنيفات الثغرات العالمية **(MITRE CWE)**، مع فحص الكود المصدري وملف البيان المدمج للنسخة النهائية ([merged_manifest/release/AndroidManifest.xml](file:///d:/My%20expensives/app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml)).
+يستند هذا التقرير إلى معايير **OWASP Mobile Application Security Verification Standard (MASVS v2.1)** ودليل اختبار أمان تطبيقات الهواتف **(MASTG)** وتصنيفات الثغرات العالمية **(MITRE CWE)**، مع فحص الكود المصدري وملف البيان المدمج للنسخة النهائية ([بيان المصدر](../../app/src/main/AndroidManifest.xml)).
 
 ---
 
@@ -22,7 +24,7 @@
 
 ## 2. فحص ملف البيان المدمج والمكونات المصدرة (Manifest & Component Attack Surface)
 
-تم فحص ملف البيان المصدري ([app/src/main/AndroidManifest.xml](file:///d:/My%20expensives/app/src/main/AndroidManifest.xml)) وملف البيان المدمج لنسخة الإطلاق ([merged_manifest/release/AndroidManifest.xml](file:///d:/My%20expensives/app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml)):
+تم فحص ملف البيان المصدري ([app/src/main/AndroidManifest.xml](../../app/src/main/AndroidManifest.xml)) وملف البيان المدمج لنسخة الإطلاق ([بيان المصدر](../../app/src/main/AndroidManifest.xml)):
 
 ### أ. الصلاحيات المطلوبة (Permissions Audit)
 - `android.permission.RECORD_AUDIO` (السطر 5 في ملف البيان): ضرورية للوظيفة الأساسية (التسجيل الصوتي للمصاريف)، وتُطلب في وقت التشغيل (Runtime Permission) قبل بدء الجلسة الصوتية.
@@ -46,7 +48,7 @@
 ## 3. الثغرات والملاحظات الأمنية المؤكدة بالأدلة (Confirmed Security Findings)
 
 ### 1. `[MONA-SEC-001]` (High) — ثغرة حقن المعادلات في ملفات CSV المصدرة (CSV Formula Injection / CWE-1236)
-- **الموقع الدقيق:** [BackupManager.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/util/BackupManager.kt#L29-L66) والدالة `csvEscape` في الأسطر [149-156](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/util/BackupManager.kt#L149-L156):
+- **الموقع الدقيق:** [BackupManager.kt](../../app/src/main/java/com/myexpenses/app/data/backup/BackupManager.kt) والدالة `csvEscape` في الأسطر [149-156](../../app/src/main/java/com/myexpenses/app/data/backup/BackupManager.kt):
   ```kotlin
   private fun csvEscape(value: String): String {
       val needsQuotes = value.contains(',') || value.contains('"') || value.contains('\n') || value.contains('\r')
@@ -61,10 +63,10 @@
 ---
 
 ### 2. `[MONA-SEC-002]` (Medium) — غياب حدود الحجم الأقصى عند فك ضغط نموذج ZIP واستيراد ملفات JSON (Unbounded Decompression & Memory Exhaustion / CWE-409)
-- **الموقع الدقيق 1 (استيراد ZIP):** [SherpaOfflineArabicEngine.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/speech/SherpaOfflineArabicEngine.kt#L83-L132) (`importModelFromZipUri`).
+- **الموقع الدقيق 1 (استيراد ZIP):** [SherpaOfflineArabicEngine.kt](../../app/src/main/java/com/myexpenses/app/voice/SherpaOfflineArabicEngine.kt) (`importModelFromZipUri`).
   - *ملاحظة إيجابية:* الكود يحمي من ثغرة **Zip Slip (Path Traversal)** عبر أخذ اسم الملف المجرد فقط `val baseName = File(entry.name).name` والتحقق من وجوده داخل القائمة البيضاء `expectedFiles = setOf(ENCODER_NAME, DECODER_NAME, JOINER_NAME, TOKENS_NAME)` (الأسطر 88–94).
   - *الثغرة:* حلقة النسخ `while (zis.read(buffer).also { read = it } > 0)` (الأسطر 103–105) لا تفرض حدًا أقصى لعدد البايتات المكتوبة لكل ملف (مثلاً `MAX_ENTRY_BYTES = 200L * 1024 * 1024`). إذا اختار المستخدم ملف ZIP خبيثًا (Zip Bomb) يحتوي على ملف باسم `encoder.int8.onnx` مضغوط بحجم 50 ميغابايت ولكنه ينفك إلى 20 غيغابايت، فسيؤدي ذلك إلى ملء مساحة تخزين الهاتف بالكامل (`Disk Exhaustion DoS`).
-- **الموقع الدقيق 2 (استيراد JSON):** [BackupManager.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/util/BackupManager.kt#L100-L106) (`restoreJsonBackup`):
+- **الموقع الدقيق 2 (استيراد JSON):** [BackupManager.kt](../../app/src/main/java/com/myexpenses/app/data/backup/BackupManager.kt) (`restoreJsonBackup`):
   ```kotlin
   val jsonText = context.contentResolver.openInputStream(uri)?.use { input ->
       input.bufferedReader().readText()
@@ -75,7 +77,7 @@
 ---
 
 ### 3. `[MONA-SEC-003]` (Medium) — تشغيل الميكروفون تلقائيًا عند استدعاء `QuickVoiceActivity` المصدرة بدون تقييد هوية المستدعي (Exported Activity Auto-Mic Activation / MASVS-PLATFORM-1)
-- **الموقع الدقيق:** [AndroidManifest.xml](file:///d:/My%20expensives/app/src/main/AndroidManifest.xml#L48-L75) و [QuickVoiceActivity.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/QuickVoiceActivity.kt#L76-L79).
+- **الموقع الدقيق:** [AndroidManifest.xml](../../app/src/main/AndroidManifest.xml) و [QuickVoiceActivity.kt](../../app/src/main/java/com/myexpenses/app/quicklaunch/QuickVoiceActivity.kt).
 - **الدليل والسبب الجذري:** النشاط `QuickVoiceActivity` مصدّر (`android:exported="true"`) ليتمكن النظام واختصارات سامسونج (`RegiStar` / `Side Button`) من فتحه عبر `com.myexpenses.app.ACTION_QUICK_VOICE` و`android.intent.action.ASSIST`. وعند فتح النشاط، يقوم الكود التالي في السطر 77 ببدء التسجيل الصوتي فورًا دون انتظار نقرة إضافية:
   ```kotlin
   LaunchedEffect(Unit) {
@@ -89,13 +91,13 @@
 
 ### 4. `[MONA-SEC-004]` (Medium) — تسريب النصوص الصوتية والمالية الحساسة إلى سجلات النظام `Logcat` في نسخة الإطلاق (Sensitive Data in System Logs / CWE-532 / MASVS-STORAGE-2)
 - **المواقع الدقيقة:**
-  - [OfflineSpeechManager.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/speech/OfflineSpeechManager.kt#L480):
+  - [OfflineSpeechManager.kt](../../app/src/main/java/com/myexpenses/app/voice/OfflineSpeechManager.kt):
     `Log.i(TAG, "onResults(localeTag=$localeTag, count=${matches.size}, best='$best')")`
-  - [OfflineSpeechManager.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/speech/OfflineSpeechManager.kt#L628):
+  - [OfflineSpeechManager.kt](../../app/src/main/java/com/myexpenses/app/voice/OfflineSpeechManager.kt):
     `Log.i(TAG, "Sherpa-ONNX offline Arabic result: '$text'")`
-  - [SherpaOfflineArabicEngine.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/speech/SherpaOfflineArabicEngine.kt#L283):
+  - [SherpaOfflineArabicEngine.kt](../../app/src/main/java/com/myexpenses/app/voice/SherpaOfflineArabicEngine.kt):
     `Log.i(TAG, "Sherpa-ONNX offline decode done in ${decodeMs}ms (audio=${seconds}s): '$rawText'")`
-  - [proguard-rules.pro](file:///d:/My%20expensives/app/proguard-rules.pro#L1-L32): لا يحتوي على قاعدة `-assumenosideeffects class android.util.Log` لحذف استدعاءات `Log.d` و`Log.i` في نسخة `release`.
+  - [proguard-rules.pro](../../app/proguard-rules.pro): لا يحتوي على قاعدة `-assumenosideeffects class android.util.Log` لحذف استدعاءات `Log.d` و`Log.i` في نسخة `release`.
 - **الأثر الأمني:** كل جملة ينطقها المستخدم (بما في ذلك المبالغ المالية وتفاصيل مشترياته الخاصة) تُطبع نصيًا في حلقة `logcat` الخاصة بالنظام حتى في نسخة `Release APK`، مما يسمح لأي أداة متصلة عبر ADB أو خدمة نظام تملك `READ_LOGS` بقراءة السجل المالي الصوتي للمستخدم.
 - **الإصلاح المقترح:** إخفاء النصوص الحساسة في السجلات إلا في وضع `BuildConfig.DEBUG`، وإضافة قاعدة إزالة `Log.d`/`Log.i`/`Log.v` في `proguard-rules.pro` لنسخة الإطلاق.
 
@@ -103,18 +105,18 @@
 
 ### 5. `[MONA-SEC-005]` (Medium) — تخزين نموذج الذكاء الاصطناعي في المساحة الخارجية للتطبيق وقاعدة البيانات بدون تشفير SQLCipher (Storage & Model Integrity / MASVS-STORAGE-1)
 - **الموقع الدقيق:**
-  1. [SherpaOfflineArabicEngine.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/speech/SherpaOfflineArabicEngine.kt#L49-L51):
+  1. [SherpaOfflineArabicEngine.kt](../../app/src/main/java/com/myexpenses/app/voice/SherpaOfflineArabicEngine.kt):
      ```kotlin
      fun getModelDir(context: Context): File {
          val base = context.getExternalFilesDir("offline_asr_ar") ?: File(context.filesDir, "offline_asr_ar")
      ```
      مسار `getExternalFilesDir` يقع في `/sdcard/Android/data/com.myexpenses.app/files/offline_asr_ar/`. رغم أن أندرويد 11+ يفرض Scoped Storage، فإن هذا المسار يظل قابلاً للوصول والتعديل عبر `adb shell` أو تطبيقات إدارة الملفات ذات الصلاحيات الخاصة، على عكس المسار الداخلي المحمي بنظام صلاحيات لينكس `/data/data/com.monavoce.app/files/offline_asr_ar/` (`context.filesDir`). استبدال ملف `.onnx` بملف تالف قد يسبب انهيارًا في الكود الأصلي (`libonnxruntime.so`).
-  2. [ExpenseDatabase.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/data/local/ExpenseDatabase.kt#L39-L43): قاعدة البيانات `my_expenses_db` مخزنة بصيغة SQLite قياسية غير مشفرة على مستوى التطبيق (تعتمد فقط على تشفير ملفات النظام FBE في أندرويد). على الأجهزة المكسورة الحماية (Rooted Devices)، يمكن قراءة ملف قاعدة البيانات مباشرة.
+  2. [ExpenseDatabase.kt](../../app/src/main/java/com/myexpenses/app/data/local/ExpenseDatabase.kt): قاعدة البيانات `my_expenses_db` مخزنة بصيغة SQLite قياسية غير مشفرة على مستوى التطبيق (تعتمد فقط على تشفير ملفات النظام FBE في أندرويد). على الأجهزة المكسورة الحماية (Rooted Devices)، يمكن قراءة ملف قاعدة البيانات مباشرة.
 
 ---
 
 ### 6. `[MONA-SEC-006]` (Low) — التراجع الصامت إلى مفتاح التوقيع التجريبي (`debug`) في حال غياب `keystore.properties` أثناء بناء نسخة الإطلاق
-- **الموقع الدقيق:** [app/build.gradle.kts](file:///d:/My%20expensives/app/build.gradle.kts#L51-L52):
+- **الموقع الدقيق:** [app/build.gradle.kts](../../app/build.gradle.kts):
   ```kotlin
   signingConfig = signingConfigs.findByName("release")
       ?.takeIf { keystorePropertiesFile.exists() }
@@ -136,3 +138,5 @@
 | **MASVS-PLATFORM-1** (أمان مكونات النظام وIPC) | **WARN (`MONA-SEC-003`)** | خدمات المساعد الصوتي محمية بـ `BIND_VOICE_INTERACTION`، لكن `QuickVoiceActivity` بحاجة لضبط الاستدعاء الخارجي. |
 | **MASVS-CODE-1 / 2** (سلامة المدخلات والتبعيات) | **FAIL (`MONA-SEC-001`, `002`)** | يلزم تحييد المعادلات في CSV (`csvEscape`) ووضع سقف لحجم فك ضغط ZIP واستيراد JSON. |
 | **MASVS-RESILIENCE-1** (تعتيم الكود وحماية الإطلاق) | **PASS** | `isMinifyEnabled = true` و`isShrinkResources = true` مفعلان ويعملان بنجاح مع R8. |
+
+</div>

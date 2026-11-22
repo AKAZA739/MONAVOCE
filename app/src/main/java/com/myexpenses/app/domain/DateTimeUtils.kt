@@ -1,6 +1,8 @@
 package com.myexpenses.app.domain
 
+import com.myexpenses.app.data.local.entity.CurrencyTotal
 import com.myexpenses.app.data.preferences.CurrencyOption
+import com.myexpenses.app.data.preferences.SupportedCurrencies
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.DayOfWeek
@@ -44,18 +46,32 @@ object DateTimeUtils {
         return TimeRange(start, end)
     }
 
-    fun formatAmount(amount: Double): String {
+    fun formatAmount(amount: Double, currency: CurrencyOption): String {
         val symbols = DecimalFormatSymbols(Locale.US)
-        return if (amount % 1.0 == 0.0) {
-            DecimalFormat("#,##0", symbols).format(amount)
-        } else {
-            DecimalFormat("#,##0.##", symbols).format(amount)
-        }
+        val pattern = if (currency.code in setOf("KWD", "JOD")) "#,##0.###" else "#,##0.##"
+        return DecimalFormat(pattern, symbols).format(amount)
     }
 
     fun formatCurrency(amount: Double, currency: CurrencyOption, isArabic: Boolean): String {
-        val num = formatAmount(amount)
-        return if (isArabic) "$num ${currency.symbolAr}" else "$num ${currency.symbolEn}"
+        val num = formatAmount(amount, currency)
+        return when {
+            isArabic -> "$num\u00A0${currency.symbolAr}"
+            currency.code == "USD" || currency.code == "EUR" -> "${currency.symbolEn}$num"
+            else -> "$num\u00A0${currency.symbolEn}"
+        }
+    }
+
+    fun formatCurrencyTotals(
+        totals: List<CurrencyTotal>,
+        defaultCurrency: CurrencyOption,
+        isArabic: Boolean,
+        separator: String = if (isArabic) "، " else ", "
+    ): String = if (totals.isEmpty()) {
+        formatCurrency(0.0, defaultCurrency, isArabic)
+    } else {
+        totals.joinToString(separator) {
+            formatCurrency(it.total, SupportedCurrencies.forExpense(it.currencyCode), isArabic)
+        }
     }
 
     fun formatDayHeader(date: LocalDate, isArabic: Boolean): String {
@@ -65,7 +81,8 @@ object DateTimeUtils {
             today.minusDays(1) -> if (isArabic) "أمس" else "Yesterday"
             else -> {
                 val locale = if (isArabic) Locale("ar") else Locale.ENGLISH
-                date.format(DateTimeFormatter.ofPattern("EEE، d MMM yyyy", locale))
+                val pattern = if (isArabic) "EEE، d MMM yyyy" else "EEE, d MMM yyyy"
+                date.format(DateTimeFormatter.ofPattern(pattern, locale))
             }
         }
     }

@@ -1,9 +1,10 @@
 package com.myexpenses.app.data.repository
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.myexpenses.app.data.local.ExpenseDatabase
 import com.myexpenses.app.data.local.entity.CategoryEntity
-import com.myexpenses.app.data.local.entity.CategoryTotalRow
+import com.myexpenses.app.data.local.entity.CurrencyTotal
 import com.myexpenses.app.data.local.entity.DefaultCategories
 import com.myexpenses.app.data.local.entity.ExpenseEntity
 import com.myexpenses.app.data.local.entity.ExpenseWithCategory
@@ -17,7 +18,7 @@ class ExpenseRepository(
     private val expenseDao = database.expenseDao()
     private val categoryDao = database.categoryDao()
 
-    suspend fun ensureDefaultCategories() {
+    suspend fun ensureDefaultCategories() = database.withTransaction {
         if (categoryDao.count() == 0) {
             categoryDao.insertAll(DefaultCategories.list)
         }
@@ -32,13 +33,15 @@ class ExpenseRepository(
     suspend fun getCategoryById(id: String): CategoryEntity? = categoryDao.getById(id)
 
     suspend fun saveCategory(category: CategoryEntity) {
-        categoryDao.insert(category)
+        categoryDao.upsert(category)
     }
 
     suspend fun deleteCategory(category: CategoryEntity) {
         if (category.id == DefaultCategories.OTHER) return
-        expenseDao.reassignCategory(category.id, DefaultCategories.OTHER)
-        categoryDao.delete(category)
+        database.withTransaction {
+            expenseDao.reassignCategory(category.id, DefaultCategories.OTHER)
+            categoryDao.delete(category)
+        }
         refreshWidgets()
     }
 
@@ -50,30 +53,16 @@ class ExpenseRepository(
     suspend fun getExpensesInRange(startMillis: Long, endMillis: Long): List<ExpenseWithCategory> =
         expenseDao.getInRange(startMillis, endMillis)
 
-    fun observeTotalInRange(startMillis: Long, endMillis: Long): Flow<Double> =
-        expenseDao.observeTotalInRange(startMillis, endMillis)
-
-    suspend fun getTotalInRange(startMillis: Long, endMillis: Long): Double =
-        expenseDao.getTotalInRange(startMillis, endMillis)
-
-    suspend fun getTotalForCategoryInRange(
-        categoryId: String,
-        startMillis: Long,
-        endMillis: Long
-    ): Double = expenseDao.getTotalForCategoryInRange(categoryId, startMillis, endMillis)
-
-    fun observeCountInRange(startMillis: Long, endMillis: Long): Flow<Int> =
-        expenseDao.observeCountInRange(startMillis, endMillis)
-
-    suspend fun getCountInRange(startMillis: Long, endMillis: Long): Int =
-        expenseDao.getCountInRange(startMillis, endMillis)
-
-    fun observeCategoryTotalsInRange(startMillis: Long, endMillis: Long): Flow<List<CategoryTotalRow>> =
-        expenseDao.observeCategoryTotalsInRange(startMillis, endMillis)
+    suspend fun getCurrencyTotals(startMillis: Long, endMillis: Long, categoryId: String? = null): List<CurrencyTotal> =
+        expenseDao.getCurrencyTotals(startMillis, endMillis, categoryId)
 
     suspend fun getLastCreatedExpense(): ExpenseWithCategory? = expenseDao.getLastCreated()
 
     suspend fun getAllExpensesWithCategory(): List<ExpenseWithCategory> = expenseDao.getAllWithCategory()
+
+    suspend fun getBackupSnapshot(): Pair<List<CategoryEntity>, List<ExpenseEntity>> = database.withTransaction {
+        getCategories() to expenseDao.getAllRaw()
+    }
 
     suspend fun insertExpense(expense: ExpenseEntity): Long {
         ensureDefaultCategories()
@@ -109,13 +98,10 @@ class ExpenseRepository(
         categories: List<CategoryEntity>,
         expenses: List<ExpenseEntity>
     ) {
-        if (categories.isNotEmpty()) {
+        database.withTransaction {
+            expenseDao.deleteAll()
+            categoryDao.deleteAll()
             categoryDao.insertAll(categories)
-        } else {
-            ensureDefaultCategories()
-        }
-        expenseDao.deleteAll()
-        if (expenses.isNotEmpty()) {
             expenseDao.insertAll(expenses)
         }
         refreshWidgets()

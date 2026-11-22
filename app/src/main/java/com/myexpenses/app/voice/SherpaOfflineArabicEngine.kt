@@ -343,7 +343,7 @@ class SherpaOfflineArabicEngine(context: Context) {
                     stream.release()
                 }
                 val decodeMs = System.currentTimeMillis() - decodeStart
-                Log.i(TAG, "Sherpa-ONNX offline decode done in ${decodeMs}ms (audio=${sliceLen * 1000 / SAMPLE_RATE}ms): '$rawText'")
+                Log.i(TAG, "Sherpa-ONNX offline decode done in ${decodeMs}ms (audio=${sliceLen * 1000 / SAMPLE_RATE}ms)")
 
                 if (cancelRequested) return@launch
 

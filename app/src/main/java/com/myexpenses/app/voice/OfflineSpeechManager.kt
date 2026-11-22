@@ -415,71 +415,45 @@ class OfflineSpeechManager(
                 "checked=${status.isChecked}, hasArOff=${status.hasArabicOffline}, hasEnOff=${status.hasEnglishOffline}"
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && status.isChecked) {
-            val isTargetInstalledOffline = if (wantArabic) status.hasArabicOffline else status.hasEnglishOffline
-            val canDownload = if (wantArabic) status.canDownloadArabic else status.canDownloadEnglish
-
-            if (isTargetInstalledOffline && onDeviceReady) {
-                launchRecognizer(useOnDevice = true, localeTag = targetTag, preferOffline = true)
-                return
-            }
-
-            if (!isTargetInstalledOffline && !allowOnlineFallback) {
-                Log.w(TAG, "Offline pack missing for $targetTag and allowOnlineFallback=false")
-                _state.value = SpeechUiState.OfflineModelMissing(
-                    languageTag = targetTag,
-                    canTriggerDownload = canDownload
-                )
-                return
-            }
-
-            // User explicitly consented to online fallback because offline pack is unavailable
-            if (!isTargetInstalledOffline && allowOnlineFallback && standardReady) {
-                Log.i(TAG, "Using standard RecognitionService with user-approved online fallback for $targetTag")
-                launchRecognizer(useOnDevice = false, localeTag = targetTag, preferOffline = false)
-                return
-            }
+        val languageInstalled = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            status.isChecked && status.errorNote == null
+        ) {
+            if (wantArabic) status.hasArabicOffline else status.hasEnglishOffline
+        } else {
+            null
         }
 
-        // Pre-API 33 or unchecked fallback path
-        if (onDeviceReady && !allowOnlineFallback) {
-            launchRecognizer(useOnDevice = true, localeTag = targetTag, preferOffline = true)
-            return
-        }
-
-        if (!standardReady) {
-            _state.value = SpeechUiState.Error(
-                code = -1,
-                messageAr = "لا يوجد محرك تعرف صوتي مثبت على هذا الجهاز. يمكنك الكتابة يدويًا أو تثبيت Speech Services.",
-                messageEn = "No speech recognition engine is installed on this device. You can type manually or install Speech Services."
+        when (selectSystemRecognitionMode(onDeviceReady, languageInstalled, standardReady, allowOnlineFallback)) {
+            SystemRecognitionMode.ON_DEVICE -> launchRecognizer(
+                useOnDevice = true,
+                localeTag = targetTag,
+                allowOnlineRetry = allowOnlineFallback && standardReady
             )
-            return
+            SystemRecognitionMode.STANDARD -> launchRecognizer(useOnDevice = false, localeTag = targetTag)
+            SystemRecognitionMode.UNAVAILABLE -> {
+                val canDownload = if (wantArabic) status.canDownloadArabic else status.canDownloadEnglish
+                _state.value = SpeechUiState.OfflineModelMissing(targetTag, canDownload)
+            }
         }
-
-        launchRecognizer(
-            useOnDevice = false,
-            localeTag = targetTag,
-            preferOffline = !allowOnlineFallback
-        )
     }
 
     private fun launchRecognizer(
         useOnDevice: Boolean,
         localeTag: String,
-        preferOffline: Boolean
+        allowOnlineRetry: Boolean = false
     ) {
         try {
-            val recognizer = if (useOnDevice && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                SpeechRecognizer.createOnDeviceSpeechRecognizer(appContext)
-            } else {
-                SpeechRecognizer.createSpeechRecognizer(appContext)
+            val recognizer = when {
+                !useOnDevice -> SpeechRecognizer.createSpeechRecognizer(appContext)
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> SpeechRecognizer.createOnDeviceSpeechRecognizer(appContext)
+                else -> error("On-device speech recognition requires Android 12 or later")
             }
             activeRecognizer = recognizer
-            activeIsOffline = useOnDevice || preferOffline
+            activeIsOffline = useOnDevice
             isCurrentlyListening = true
             val sessionId = ++activeSessionId
 
-            Log.i(TAG, "Launching recognizer: session=$sessionId, useOnDevice=$useOnDevice, localeTag=$localeTag, preferOffline=$preferOffline")
+            Log.i(TAG, "Launching recognizer: session=$sessionId, useOnDevice=$useOnDevice, localeTag=$localeTag")
 
             recognizer.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
@@ -510,6 +484,11 @@ class OfflineSpeechManager(
                     if (error == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE ||
                         error == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED
                     ) {
+                        if (allowOnlineRetry) {
+                            stopAndReleaseInternal()
+                            launchRecognizer(useOnDevice = false, localeTag = localeTag)
+                            return
+                        }
                         val canDl = if (localeTag.startsWith("ar", ignoreCase = true)) {
                             _offlineStatus.value.canDownloadArabic
                         } else {
@@ -528,7 +507,7 @@ class OfflineSpeechManager(
                     isCurrentlyListening = false
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     val best = matches?.firstOrNull()?.trim().orEmpty()
-                    Log.i(TAG, "onResults(localeTag=$localeTag, count=${matches?.size ?: 0}, best='$best')")
+                    Log.i(TAG, "onResults(localeTag=$localeTag, count=${matches?.size ?: 0})")
                     if (best.isNotEmpty()) {
                         _state.value = SpeechUiState.Result(best, activeIsOffline)
                     } else {
@@ -566,7 +545,7 @@ class OfflineSpeechManager(
                 putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, appContext.packageName)
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
-                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, preferOffline)
+                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, useOnDevice)
                 putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
                 putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1400L)
             }
@@ -616,7 +595,6 @@ class OfflineSpeechManager(
                     if (sessionId != activeSessionId) return@runOnMain
                     isCurrentlyListening = false
                     activeUsesSherpa = false
-                    Log.i(TAG, "Sherpa-ONNX offline Arabic result: '$text'")
                     _state.value = SpeechUiState.Result(text = text, isOfflineEngine = true)
                 }
             },

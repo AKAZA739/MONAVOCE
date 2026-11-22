@@ -1,3 +1,5 @@
+<div dir="rtl" lang="ar">
+
 # 08 — تدقيق جاهزية النشر على متجر جوجل بلاي (Google Play Store Readiness & Policy Compliance Audit)
 
 يفحص هذا التقرير مدى توافق التطبيق مع متطلبات وسياسات **Google Play Console (2025/2026)** تمهيدًا لإطلاقه العالمي تحت علامة **MONAVOCE (موناڤوتشي)**.
@@ -23,7 +25,7 @@
 ## 2. تحليل العوائق الخاصة بمتجر Google Play وكيفية حلها
 
 ### 1. `[MONA-PLAY-001]` (High / Release Blocker) — ترحيل معرف الحزمة والاسم التجاري إلى `MONAVOCE` (`com.monavoce.app`)
-- **الموقع الدقيق:** [app/build.gradle.kts](file:///d:/My%20expensives/app/build.gradle.kts#L13-L14) و [strings.xml](file:///d:/My%20expensives/app/src/main/res/values/strings.xml#L2).
+- **الموقع الدقيق:** [app/build.gradle.kts](../../app/build.gradle.kts) و [strings.xml](../../app/src/main/res/values/strings.xml).
 - **التحليل:**
   - معرف الحزمة `applicationId` في Google Play نهائي ولا يمكن تغييره أبدًا بعد رفع أول إصدار.
   - اسم `"My Expenses"` مستخدم منذ أكثر من 10 سنوات على المتجر (`org.totschnig.myexpenses`)، واستخدامه قد يؤدي إلى رفض التطبيق بسبب سياسة انتحال الهوية أو التعدي على العلامات التجارية (Impersonation / IP Policy).
@@ -52,7 +54,7 @@
 ---
 
 ### 3. `[MONA-PLAY-003]` (Medium) — مراجعة تصريح `ExpenseStubRecognitionService` و`VoiceInteractionService`
-- **الموقع الدقيق:** [AndroidManifest.xml](file:///d:/My%20expensives/app/src/main/AndroidManifest.xml#L77-L108) و [ExpenseAssistantServices.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/service/ExpenseAssistantServices.kt#L51-L65).
+- **الموقع الدقيق:** [AndroidManifest.xml](../../app/src/main/AndroidManifest.xml) و [ExpenseAssistantServices.kt](../../app/src/main/java/com/myexpenses/app/quicklaunch/ExpenseAssistantServices.kt).
 - **التحليل:**
   - يشترط نظام أندرويد في `voice_interaction_service.xml` الإشارة إلى `recognitionService` حتى يظهر التطبيق في قائمة **"تطبيق المساعد الرقمي الافتراضي" (Default Digital Assistant App)** لتشغيله بزر التشغيل الجانبي (`Side Button Press & Hold`).
   - حاليًا، `ExpenseStubRecognitionService` يرجع `callback?.error(SpeechRecognizer.ERROR_CLIENT)` مباشرة.
@@ -70,3 +72,5 @@
    - أيقونة عالية الدقة: `512 x 512 px` (32-bit PNG) بشعار **MONAVOCE**.
    - صورة Feature Graphic: `1024 x 500 px` تعرض الهوية الداكنة `Obsidian Vault` والكرة الصوتية `Sonic Voice Orb` مع شعار *"Speak Your Spend. 100% Offline."*.
    - 6 لقطات شاشة للهاتف (3 بالعربية و3 بالإنجليزية): لوحة التحكم `Overview`، الكرة الصوتية أثناء الالتقاط، الإحصائيات `DonutChart`، إدارة الفئات، وإعدادات زر التشغيل الجانبي.
+
+</div>

@@ -24,4 +24,4 @@ SOFTWARE.
 
 Third-Party Notice:
 - Sherpa-ONNX runtime library (Apache-2.0).
-- Optional external Arabic ONNX speech recognition model files remain subject to their respective upstream model licenses (e.g. NVIDIA NeMo CC-BY-4.0 / SADA22 fine-tune CC-BY-NC-SA-4.0).
+- The optional Arabic Gulf FastConformer model from vladadu is licensed under CC BY-NC-SA 4.0. See docs/arabic-model.md for attribution and the verified source revision.

@@ -1,6 +1,7 @@
 package com.myexpenses.app.voice
 
 import com.myexpenses.app.data.preferences.CurrencyOption
+import com.myexpenses.app.data.preferences.SupportedCurrencies
 import com.myexpenses.app.data.repository.ExpenseRepository
 import com.myexpenses.app.domain.DateTimeUtils
 import com.myexpenses.app.domain.parser.QueryPeriod
@@ -45,22 +46,22 @@ class VoiceCommandExecutor(
                 }
 
                 if (command.categoryId != null) {
-                    val total = repository.getTotalForCategoryInRange(
-                        command.categoryId,
+                    val totals = repository.getCurrencyTotals(
                         range.startMillis,
-                        range.endMillis
+                        range.endMillis,
+                        command.categoryId
                     )
-                    val amtAr = DateTimeUtils.formatCurrency(total, currency, isArabic = true)
-                    val amtEn = DateTimeUtils.formatCurrency(total, currency, isArabic = false)
+                    val amtAr = DateTimeUtils.formatCurrencyTotals(totals, currency, isArabic = true)
+                    val amtEn = DateTimeUtils.formatCurrencyTotals(totals, currency, isArabic = false)
                     CommandExecutionResult(
                         messageAr = "صرفت على ${command.categoryNameAr ?: ""} $periodAr: $amtAr",
                         messageEn = "You spent $amtEn on ${command.categoryNameEn ?: ""} $periodEn"
                     )
                 } else {
-                    val total = repository.getTotalInRange(range.startMillis, range.endMillis)
-                    val count = repository.getCountInRange(range.startMillis, range.endMillis)
-                    val amtAr = DateTimeUtils.formatCurrency(total, currency, isArabic = true)
-                    val amtEn = DateTimeUtils.formatCurrency(total, currency, isArabic = false)
+                    val totals = repository.getCurrencyTotals(range.startMillis, range.endMillis)
+                    val count = totals.sumOf { it.count }
+                    val amtAr = DateTimeUtils.formatCurrencyTotals(totals, currency, isArabic = true)
+                    val amtEn = DateTimeUtils.formatCurrencyTotals(totals, currency, isArabic = false)
                     CommandExecutionResult(
                         messageAr = "إجمالي مصروفات $periodAr: $amtAr ($count عمليات)",
                         messageEn = "Total expenses $periodEn: $amtEn ($count entries)"
@@ -79,10 +80,10 @@ class VoiceCommandExecutor(
                     QueryPeriod.THIS_WEEK -> DateTimeUtils.thisWeekRange()
                     QueryPeriod.THIS_MONTH -> DateTimeUtils.thisMonthRange()
                 }
-                val total = repository.getTotalInRange(range.startMillis, range.endMillis)
-                val count = repository.getCountInRange(range.startMillis, range.endMillis)
-                val amtAr = DateTimeUtils.formatCurrency(total, currency, isArabic = true)
-                val amtEn = DateTimeUtils.formatCurrency(total, currency, isArabic = false)
+                val totals = repository.getCurrencyTotals(range.startMillis, range.endMillis)
+                val count = totals.sumOf { it.count }
+                val amtAr = DateTimeUtils.formatCurrencyTotals(totals, currency, isArabic = true)
+                val amtEn = DateTimeUtils.formatCurrencyTotals(totals, currency, isArabic = false)
                 val labelAr = when (command.period) {
                     QueryPeriod.YESTERDAY -> "أمس"
                     QueryPeriod.THIS_WEEK -> "هذا الأسبوع"
@@ -112,8 +113,9 @@ class VoiceCommandExecutor(
                     )
                 } else {
                     repository.deleteExpense(last.expense)
-                    val amtAr = DateTimeUtils.formatCurrency(last.expense.amount, currency, isArabic = true)
-                    val amtEn = DateTimeUtils.formatCurrency(last.expense.amount, currency, isArabic = false)
+                    val expenseCurrency = SupportedCurrencies.forExpense(last.expense.currencyCode)
+                    val amtAr = DateTimeUtils.formatCurrency(last.expense.amount, expenseCurrency, isArabic = true)
+                    val amtEn = DateTimeUtils.formatCurrency(last.expense.amount, expenseCurrency, isArabic = false)
                     val catAr = last.category?.nameAr ?: ""
                     val catEn = last.category?.nameEn ?: ""
                     CommandExecutionResult(
@@ -136,8 +138,9 @@ class VoiceCommandExecutor(
                         categoryId = command.newCategoryId ?: last.expense.categoryId
                     )
                     repository.updateExpense(updated)
-                    val amtAr = DateTimeUtils.formatCurrency(command.newAmount, currency, isArabic = true)
-                    val amtEn = DateTimeUtils.formatCurrency(command.newAmount, currency, isArabic = false)
+                    val expenseCurrency = SupportedCurrencies.forExpense(last.expense.currencyCode)
+                    val amtAr = DateTimeUtils.formatCurrency(command.newAmount, expenseCurrency, isArabic = true)
+                    val amtEn = DateTimeUtils.formatCurrency(command.newAmount, expenseCurrency, isArabic = false)
                     CommandExecutionResult(
                         messageAr = "تم تعديل آخر مصروف إلى $amtAr",
                         messageEn = "Updated last expense to $amtEn"

@@ -1,5 +1,6 @@
 package com.myexpenses.app.quicklaunch
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.os.Build
 import android.service.quicksettings.Tile
@@ -17,6 +18,7 @@ class ExpenseQuickTileService : TileService() {
         }
     }
 
+    @SuppressLint("StartActivityAndCollapseDeprecated") // Android 13 and older require the Intent overload.
     override fun onClick() {
         super.onClick()
         val intent = QuickLaunchHelper.createQuickVoiceIntent(this)

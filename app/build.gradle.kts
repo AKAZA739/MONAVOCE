@@ -13,6 +13,10 @@ val keystoreProps = Properties().apply {
         keystorePropsFile.inputStream().use { load(it) }
     }
 }
+val releaseStore = keystoreProps.getProperty("storeFile")?.takeIf { it.isNotBlank() }?.let(rootProject::file)
+val hasReleaseKey = releaseStore?.isFile == true &&
+    listOf("storePassword", "keyAlias", "keyPassword").all { !keystoreProps.getProperty(it).isNullOrBlank() }
+val verifyUnsignedRelease = providers.gradleProperty("verifyUnsignedRelease").map { it.toBooleanStrict() }.orElse(false)
 
 android {
     namespace = "com.myexpenses.app"
@@ -35,9 +39,9 @@ android {
     }
 
     signingConfigs {
-        if (keystorePropsFile.exists()) {
+        if (hasReleaseKey && !verifyUnsignedRelease.get()) {
             create("release") {
-                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storeFile = releaseStore
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
@@ -49,8 +53,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.findByName("release")?.takeIf { it.storeFile?.exists() == true }
-                ?: signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -58,6 +61,7 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            ndk { abiFilters += "x86_64" }
         }
     }
 
@@ -79,6 +83,22 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+val checkReleaseSigning = tasks.register("checkReleaseSigning") {
+    val signingAvailable = hasReleaseKey
+    val unsignedVerification = verifyUnsignedRelease.get()
+    doLast {
+        check(signingAvailable || unsignedVerification) {
+            "Release signing is missing. Configure keystore.properties or pass -PverifyUnsignedRelease=true for a local/CI build check."
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name in setOf("assembleRelease", "bundleRelease", "packageRelease", "packageReleaseBundle")) {
+        dependsOn(checkReleaseSigning)
     }
 }
 
@@ -105,6 +125,7 @@ dependencies {
     implementation(files("libs/sherpa-onnx-1.10.45.aar"))
 
     testImplementation(libs.junit)
+    testImplementation(libs.json.test)
     testImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.ui.tooling)
 }

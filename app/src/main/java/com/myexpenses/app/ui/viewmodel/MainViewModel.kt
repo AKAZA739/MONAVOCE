@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.myexpenses.app.AppContainer
 import com.myexpenses.app.data.local.entity.CategoryEntity
+import com.myexpenses.app.data.local.entity.CurrencyTotal
 import com.myexpenses.app.data.local.entity.DefaultCategories
 import com.myexpenses.app.data.local.entity.ExpenseEntity
 import com.myexpenses.app.data.local.entity.ExpenseWithCategory
+import com.myexpenses.app.data.local.entity.totalsByCurrency
 import com.myexpenses.app.data.preferences.UserPreferences
 import com.myexpenses.app.domain.DateTimeUtils
 import com.myexpenses.app.ui.components.CategoryBreakdownItem
@@ -41,11 +43,11 @@ data class BarChartSlot(
 data class DashboardUiState(
     val activePeriod: DashboardPeriod = DashboardPeriod.MONTH,
     val selectedDate: LocalDate = LocalDate.now(),
-    val activeTotal: Double = 0.0,
-    val activeCount: Int = 0,
-    val todayTotal: Double = 0.0,
-    val weekTotal: Double = 0.0,
-    val monthTotal: Double = 0.0,
+    val activeTotals: List<CurrencyTotal> = emptyList(),
+    val monthTotals: List<CurrencyTotal> = emptyList(),
+    val chartCurrencyCode: String? = null,
+    val chartCurrencyCodes: List<String> = emptyList(),
+    val chartTotal: Double = 0.0,
     val barSlots: List<BarChartSlot> = emptyList(),
     val activeBreakdown: List<CategoryBreakdownItem> = emptyList(),
     val activeExpenses: List<ExpenseWithCategory> = emptyList(),
@@ -68,6 +70,8 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
     private val _activePeriod = MutableStateFlow(DashboardPeriod.TODAY)
     val activePeriod: StateFlow<DashboardPeriod> = _activePeriod.asStateFlow()
 
+    private val chartCurrency = MutableStateFlow<String?>(null)
+
     // History filters
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -85,8 +89,9 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         repo.observeAllExpenses(),
         categories,
         _activePeriod,
-        _selectedDate
-    ) { allExpenses, allCats, period, selectedDay ->
+        _selectedDate,
+        chartCurrency
+    ) { allExpenses, allCats, period, selectedDay, selectedCurrency ->
         val today = LocalDate.now()
         val catMap = allCats.associateBy { it.id }
 
@@ -95,12 +100,8 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         val monthRange = DateTimeUtils.thisMonthRange()
         val selectedDayRange = DateTimeUtils.dayRange(selectedDay)
 
-        val todayTotal = allExpenses.filter { it.expense.timestamp in todayRange.startMillis until todayRange.endMillis }
-            .sumOf { it.expense.amount }
-        val weekTotal = allExpenses.filter { it.expense.timestamp in weekRange.startMillis until weekRange.endMillis }
-            .sumOf { it.expense.amount }
-        val monthTotal = allExpenses.filter { it.expense.timestamp in monthRange.startMillis until monthRange.endMillis }
-            .sumOf { it.expense.amount }
+        val monthTotals = allExpenses.filter { it.expense.timestamp in monthRange.startMillis until monthRange.endMillis }
+            .totalsByCurrency()
 
         val activeRange = when (period) {
             DashboardPeriod.TODAY -> todayRange
@@ -112,15 +113,22 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         val activeExpenses = allExpenses.filter {
             it.expense.timestamp >= activeRange.startMillis && it.expense.timestamp < activeRange.endMillis
         }
-        val activeTotal = activeExpenses.sumOf { it.expense.amount }
+        val activeTotals = activeExpenses.totalsByCurrency()
+        val currencyCodes = allExpenses.map { it.expense.currencyCode.uppercase() }.distinct().sorted()
+        val chartCode = selectedCurrency?.takeIf { it in currencyCodes }
+            ?: activeTotals.firstOrNull()?.currencyCode
+            ?: currencyCodes.firstOrNull()
+        val chartExpenses = allExpenses.filter { it.expense.currencyCode.equals(chartCode, ignoreCase = true) }
+        val chartTotal = activeTotals.firstOrNull { it.currencyCode == chartCode }?.total ?: 0.0
 
         // Category breakdown for the active period
         val breakdown = activeExpenses
+            .filter { it.expense.currencyCode.equals(chartCode, ignoreCase = true) }
             .groupBy { it.expense.categoryId }
             .mapNotNull { (catId, list) ->
                 val cat = catMap[catId] ?: return@mapNotNull null
                 val sum = list.sumOf { it.expense.amount }
-                val ratio = if (activeTotal > 0.0) (sum / activeTotal).toFloat() else 0f
+                val ratio = if (chartTotal > 0.0) (sum / chartTotal).toFloat() else 0f
                 CategoryBreakdownItem(cat, sum, list.size, ratio)
             }
             .sortedByDescending { it.total }
@@ -135,7 +143,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
                     val endDay = if (weekIdx == 4) firstOfMonth.plusMonths(1) else firstOfMonth.plusDays(((weekIdx + 1) * 7).toLong())
                     val startMs = DateTimeUtils.dayRange(startDay).startMillis
                     val endMs = DateTimeUtils.dayRange(endDay).startMillis
-                    val sum = allExpenses.filter { it.expense.timestamp in startMs until endMs }.sumOf { it.expense.amount }
+                    val sum = chartExpenses.filter { it.expense.timestamp in startMs until endMs }.sumOf { it.expense.amount }
                     BarChartSlot(
                         labelAr = "أ${weekIdx + 1}",
                         labelEn = "W${weekIdx + 1}",
@@ -152,7 +160,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
                 (0..6).map { offset ->
                     val d = startOfWeek.plusDays(offset.toLong())
                     val r = DateTimeUtils.dayRange(d)
-                    val sum = allExpenses.filter { it.expense.timestamp in r.startMillis until r.endMillis }.sumOf { it.expense.amount }
+                    val sum = chartExpenses.filter { it.expense.timestamp in r.startMillis until r.endMillis }.sumOf { it.expense.amount }
                     BarChartSlot(
                         labelAr = labelsAr[offset],
                         labelEn = labelsEn[offset],
@@ -167,7 +175,7 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
                 (4 downTo 0).map { daysBack ->
                     val d = anchor.minusDays(daysBack.toLong())
                     val r = DateTimeUtils.dayRange(d)
-                    val sum = allExpenses.filter { it.expense.timestamp in r.startMillis until r.endMillis }.sumOf { it.expense.amount }
+                    val sum = chartExpenses.filter { it.expense.timestamp in r.startMillis until r.endMillis }.sumOf { it.expense.amount }
                     val labelAr = when (d) {
                         today -> "اليوم"
                         today.minusDays(1) -> "أمس"
@@ -191,11 +199,11 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         DashboardUiState(
             activePeriod = period,
             selectedDate = selectedDay,
-            activeTotal = activeTotal,
-            activeCount = activeExpenses.size,
-            todayTotal = todayTotal,
-            weekTotal = weekTotal,
-            monthTotal = monthTotal,
+            activeTotals = activeTotals,
+            monthTotals = monthTotals,
+            chartCurrencyCode = chartCode,
+            chartCurrencyCodes = currencyCodes,
+            chartTotal = chartTotal,
             barSlots = barSlots,
             activeBreakdown = breakdown,
             activeExpenses = activeExpenses,
@@ -236,6 +244,10 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         if (period == DashboardPeriod.TODAY) {
             _selectedDate.value = LocalDate.now()
         }
+    }
+
+    fun selectChartCurrency(currencyCode: String) {
+        chartCurrency.value = currencyCode
     }
 
     fun selectDate(date: LocalDate) {

@@ -27,6 +27,10 @@ object SupportedCurrencies {
 
     fun findByCode(code: String): CurrencyOption =
         list.firstOrNull { it.code.equals(code, ignoreCase = true) } ?: list.first()
+
+    fun forExpense(code: String): CurrencyOption =
+        list.firstOrNull { it.code.equals(code, ignoreCase = true) }
+            ?: code.uppercase().let { CurrencyOption(it, it, it, it, it) }
 }
 
 data class UserPreferences(

@@ -29,6 +29,8 @@ import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.PieChart
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +38,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import com.myexpenses.app.data.local.entity.ExpenseEntity
 import com.myexpenses.app.data.local.entity.ExpenseWithCategory
 import com.myexpenses.app.data.preferences.CurrencyOption
+import com.myexpenses.app.data.preferences.SupportedCurrencies
 import com.myexpenses.app.domain.DateTimeUtils
 import com.myexpenses.app.ui.components.CategoryBreakdownItem
 import com.myexpenses.app.ui.components.CategoryIconMapper
@@ -70,6 +74,7 @@ fun DashboardScreen(
     currency: CurrencyOption,
     isArabic: Boolean,
     onSelectPeriod: (DashboardPeriod) -> Unit,
+    onSelectChartCurrency: (String) -> Unit,
     onStepDate: (Long) -> Unit,
     onSelectToday: () -> Unit,
     onOpenCategories: () -> Unit,
@@ -79,6 +84,7 @@ fun DashboardScreen(
 ) {
     var showInsightsExpanded by remember { mutableStateOf(false) }
     var topModeAll by remember { mutableStateOf(false) }
+    var showCurrencyMenu by remember { mutableStateOf(false) }
 
     val cardBg = MaterialTheme.colorScheme.surface
     val borderColor = MaterialTheme.colorScheme.outlineVariant
@@ -86,6 +92,7 @@ fun DashboardScreen(
     val mutedText = MaterialTheme.colorScheme.onSurfaceVariant
 
     val displayedExpenses = if (topModeAll) state.recentExpenses else state.activeExpenses
+    val chartCurrency = state.chartCurrencyCode?.let(SupportedCurrencies::forExpense) ?: currency
 
     LazyColumn(
         modifier = Modifier
@@ -144,7 +151,7 @@ fun DashboardScreen(
                         IconButton(onClick = { onStepDate(-1) }, modifier = Modifier.size(30.dp)) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = null,
+                                contentDescription = if (isArabic) "اليوم السابق" else "Previous day",
                                 tint = mutedText
                             )
                         }
@@ -161,7 +168,7 @@ fun DashboardScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                                contentDescription = null,
+                                contentDescription = if (isArabic) "اليوم التالي" else "Next day",
                                 tint = if (isToday) mutedText.copy(alpha = 0.3f) else mutedText
                             )
                         }
@@ -232,7 +239,7 @@ fun DashboardScreen(
 
                     // Big Crisp Total Amount + Entry Count
                     Text(
-                        text = DateTimeUtils.formatCurrency(state.activeTotal, currency, isArabic),
+                        text = DateTimeUtils.formatCurrencyTotals(state.activeTotals, currency, isArabic, "\n"),
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -240,13 +247,43 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (isArabic) {
-                            "مصروفاتك • ${state.activeCount} عمليات • الشهر: ${DateTimeUtils.formatAmount(state.monthTotal)}"
+                            "عدد العمليات: ${state.activeExpenses.size}"
                         } else {
-                            "Your expenses • ${state.activeCount} items • Month: ${DateTimeUtils.formatAmount(state.monthTotal)}"
+                            "Entries: ${state.activeExpenses.size}"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = mutedText
                     )
+                    if (state.activePeriod != DashboardPeriod.MONTH) {
+                        Text(
+                            text = (if (isArabic) "إجمالي الشهر: " else "Month total: ") +
+                                DateTimeUtils.formatCurrencyTotals(state.monthTotals, currency, isArabic),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = mutedText
+                        )
+                    }
+
+                    if (state.chartCurrencyCodes.size > 1) {
+                        Box {
+                            TextButton(onClick = { showCurrencyMenu = true }) {
+                                val name = if (isArabic) chartCurrency.nameAr else chartCurrency.nameEn
+                                Text(if (isArabic) "عملة التحليلات: $name" else "Charts: $name")
+                                Icon(Icons.Rounded.ExpandMore, contentDescription = null)
+                            }
+                            DropdownMenu(expanded = showCurrencyMenu, onDismissRequest = { showCurrencyMenu = false }) {
+                                state.chartCurrencyCodes.forEach { code ->
+                                    val option = SupportedCurrencies.forExpense(code)
+                                    DropdownMenuItem(
+                                        text = { Text(if (isArabic) option.nameAr else option.nameEn) },
+                                        onClick = {
+                                            showCurrencyMenu = false
+                                            onSelectChartCurrency(code)
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(18.dp))
 
@@ -271,7 +308,7 @@ fun DashboardScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (isArabic) "+ تعديل" else "+ Edit",
+                            text = if (isArabic) "تعديل" else "Edit",
                             style = MaterialTheme.typography.labelLarge,
                             color = primaryAccent,
                             modifier = Modifier.clickable(onClick = onOpenCategories)
@@ -283,7 +320,7 @@ fun DashboardScreen(
                     // 3-Column Category Mini Cards inside subtle dark sub-panel
                     TopCategoriesStrip(
                         items = state.activeBreakdown,
-                        currency = currency,
+                        currency = chartCurrency,
                         isArabic = isArabic,
                         accentColor = primaryAccent
                     )
@@ -336,8 +373,8 @@ fun DashboardScreen(
                             ExpenseChartCard(
                                 title = if (isArabic) "التوزيع التفصيلي للفئات" else "Detailed Category Split",
                                 items = state.activeBreakdown,
-                                totalAmount = state.activeTotal,
-                                currency = currency,
+                                totalAmount = state.chartTotal,
+                                currency = chartCurrency,
                                 isArabic = isArabic
                             )
                         }
@@ -404,7 +441,6 @@ fun DashboardScreen(
             items(displayedExpenses, key = { it.expense.id }) { item ->
                 ExpenseListItemCard(
                     item = item,
-                    currency = currency,
                     isArabic = isArabic,
                     onClick = { onEditExpense(item.expense) },
                     onDelete = { onDeleteExpense(item.expense) }
@@ -591,7 +627,6 @@ private fun TopCategoriesStrip(
 @Composable
 fun ExpenseListItemCard(
     item: ExpenseWithCategory,
-    currency: CurrencyOption,
     isArabic: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit
@@ -663,7 +698,9 @@ fun ExpenseListItemCard(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = DateTimeUtils.formatCurrency(item.expense.amount, currency, isArabic),
+                    text = DateTimeUtils.formatCurrency(
+                        item.expense.amount, SupportedCurrencies.forExpense(item.expense.currencyCode), isArabic
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface

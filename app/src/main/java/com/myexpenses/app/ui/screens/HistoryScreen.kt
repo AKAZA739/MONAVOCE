@@ -29,10 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.myexpenses.app.data.local.entity.CategoryEntity
 import com.myexpenses.app.data.local.entity.ExpenseEntity
 import com.myexpenses.app.data.local.entity.ExpenseWithCategory
+import com.myexpenses.app.data.local.entity.totalsByCurrency
 import com.myexpenses.app.data.preferences.CurrencyOption
 import com.myexpenses.app.domain.DateTimeUtils
 import com.myexpenses.app.ui.viewmodel.HistoryDateFilter
@@ -54,10 +56,11 @@ fun HistoryScreen(
 ) {
     val grouped = remember(expenses) {
         expenses.groupBy { DateTimeUtils.toLocalDate(it.expense.timestamp) }
+            .mapValues { (_, items) -> items to items.totalsByCurrency() }
             .entries
             .sortedByDescending { it.key }
     }
-    val filteredTotal = remember(expenses) { expenses.sumOf { it.expense.amount } }
+    val filteredTotals = remember(expenses) { expenses.totalsByCurrency() }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -135,15 +138,18 @@ fun HistoryScreen(
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isArabic) "النتائج: ${expenses.size} عملية" else "Results: ${expenses.size} items",
+                        text = if (isArabic) "عدد النتائج: ${expenses.size}" else "Results: ${expenses.size}",
+                        modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(
-                        text = DateTimeUtils.formatCurrency(filteredTotal, currency, isArabic),
+                        text = DateTimeUtils.formatCurrencyTotals(filteredTotals, currency, isArabic, "\n"),
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.End,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -172,22 +178,25 @@ fun HistoryScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 104.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                grouped.forEach { (date, dayItems) ->
-                    val daySum = dayItems.sumOf { it.expense.amount }
+                grouped.forEach { (date, day) ->
+                    val (dayItems, dayTotals) = day
                     item(key = "header_$date") {
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = DateTimeUtils.formatDayHeader(date, isArabic),
+                                modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = DateTimeUtils.formatCurrency(daySum, currency, isArabic),
+                                text = DateTimeUtils.formatCurrencyTotals(dayTotals, currency, isArabic, "\n"),
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.End,
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -197,7 +206,6 @@ fun HistoryScreen(
                     items(dayItems, key = { it.expense.id }) { item ->
                         ExpenseListItemCard(
                             item = item,
-                            currency = currency,
                             isArabic = isArabic,
                             onClick = { onEditExpense(item.expense) },
                             onDelete = { onDeleteExpense(item.expense) }

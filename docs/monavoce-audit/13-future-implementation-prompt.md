@@ -11,12 +11,12 @@
 ```markdown
 # MISSION: IMPLEMENT MONAVOCE v2.0.0 — PRODUCTION REMEDIATION & FULL BRAND TRANSFORMATION
 
-You are a Principal Android Engineer & UI/UX Architect tasked with executing the approved production remediation roadmap and brand transformation of the Android project in `d:\My expensives` from `"My Expenses | مصاريفي"` (`com.myexpenses.app`) into the global commercial release of:
+You are a Principal Android Engineer & UI/UX Architect tasked with executing the approved production remediation roadmap and brand transformation of the Android project in the repository root from `"My Expenses | مصاريفي"` (`com.myexpenses.app`) into the global commercial release of:
 
 **MONAVOCE** (Arabic: **موناڤوتشي**)
 Concept: *Moneta* (Money) + *Voce* (Voice) — 100% On-Device Voice-Powered Personal Finance Vault.
 
-Before making any changes, read the audit reports in `d:\My expensives\docs\monavoce-audit\`, specifically:
+Before making any changes, read the audit reports in `docs/monavoce-audit/`, specifically:
 - `09-findings-register.md`
 - `10-remediation-roadmap.md`
 - `06-brand-identity.md`

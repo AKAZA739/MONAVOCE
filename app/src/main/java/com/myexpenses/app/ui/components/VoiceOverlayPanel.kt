@@ -36,6 +36,7 @@ import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.ErrorOutline
@@ -212,20 +213,23 @@ fun VoiceOverlayPanel(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    val systemRecognitionActive = stage is VoiceSessionStage.Listening && !stage.isOfflineEngine
                     Icon(
-                        imageVector = Icons.Rounded.CloudOff,
+                        imageVector = if (systemRecognitionActive) Icons.Rounded.Cloud else Icons.Rounded.CloudOff,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
                         tint = NeonCyan
                     )
                     Text(
                         text = when {
-                            stage is VoiceSessionStage.Listening && stage.isOfflineEngine ->
-                                if (isArabic) "محلي 100% بدون إنترنت (خاص)" else "100% Offline Local Engine"
+                            systemRecognitionActive ->
+                                if (isArabic) "خدمة النظام قد تستخدم الإنترنت" else "System speech may use the Internet"
+                            stage is VoiceSessionStage.Listening ->
+                                if (isArabic) "التعرف على الجهاز" else "On-device recognition"
                             !preferences.allowOnlineSpeechFallback ->
-                                if (isArabic) "وضع محلي بدون إنترنت (خاص)" else "Offline-First Local Mode"
+                                if (isArabic) "التعرف المحلي فقط" else "On-device recognition only"
                             else ->
-                                if (isArabic) "محلي أولًا + احتياطي سحابي بموافقتك" else "Offline-First + Optional Online"
+                                if (isArabic) "التعرف المحلي مع بديل سحابي" else "On-device with online fallback"
                         },
                         style = MaterialTheme.typography.labelMedium,
                         color = Color(0xFFD5E6FF)

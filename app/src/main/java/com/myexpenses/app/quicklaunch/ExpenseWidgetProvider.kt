@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import android.widget.RemoteViews
 import com.myexpenses.app.MainActivity
 import com.myexpenses.app.R
@@ -52,8 +53,8 @@ class ExpenseWidgetProvider : AppWidgetProvider() {
             val db = ExpenseDatabase.getInstance(context)
             val prefs = UserPreferencesRepository(context).preferences.value
             val range = DateTimeUtils.todayRange()
-            val total = db.expenseDao().getTotalInRange(range.startMillis, range.endMillis)
-            val count = db.expenseDao().getCountInRange(range.startMillis, range.endMillis)
+            val totals = db.expenseDao().getCurrencyTotals(range.startMillis, range.endMillis)
+            val count = totals.sumOf { it.count }
 
             val isArabic = when (prefs.appLanguage) {
                 "ar" -> true
@@ -61,11 +62,18 @@ class ExpenseWidgetProvider : AppWidgetProvider() {
                 else -> Locale.getDefault().language == "ar"
             }
 
-            val formattedTotal = DateTimeUtils.formatCurrency(total, prefs.currency, isArabic)
-            val subtitle = if (count > 0) {
-                if (isArabic) "$count عمليات اليوم • اضغط للتحدث" else "$count entries today • Tap mic"
+            val formattedTotal = DateTimeUtils.formatCurrencyTotals(totals, prefs.currency, isArabic)
+            val displayTotal = if (totals.size > 2) {
+                val first = DateTimeUtils.formatCurrencyTotals(totals.take(1), prefs.currency, isArabic)
+                val remaining = totals.size - 1
+                if (isArabic) "$first، و$remaining عملات أخرى" else "$first + $remaining currencies"
             } else {
-                context.getString(R.string.widget_tap_to_record)
+                formattedTotal
+            }
+            val subtitle = if (count > 0) {
+                if (isArabic) "عدد العمليات: $count" else "Entries: $count"
+            } else {
+                if (isArabic) "اضغط للتحدث" else "Tap to speak"
             }
 
             val voicePendingIntent = PendingIntent.getActivity(
@@ -86,7 +94,10 @@ class ExpenseWidgetProvider : AppWidgetProvider() {
 
             for (widgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_expense).apply {
-                    setTextViewText(R.id.widget_total_amount, formattedTotal)
+                    setInt(R.id.widget_root, "setLayoutDirection", if (isArabic) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR)
+                    setTextViewText(R.id.widget_title, if (isArabic) "مصروفات اليوم" else "Today's expenses")
+                    setTextViewText(R.id.widget_total_amount, displayTotal)
+                    setContentDescription(R.id.widget_total_amount, formattedTotal)
                     setTextViewText(R.id.widget_count, subtitle)
                     setOnClickPendingIntent(R.id.widget_mic_button, voicePendingIntent)
                     setOnClickPendingIntent(R.id.widget_summary_container, appPendingIntent)

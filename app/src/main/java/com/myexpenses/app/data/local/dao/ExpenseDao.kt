@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.myexpenses.app.data.local.entity.CategoryTotalRow
+import com.myexpenses.app.data.local.entity.CurrencyTotal
 import com.myexpenses.app.data.local.entity.ExpenseEntity
 import com.myexpenses.app.data.local.entity.ExpenseWithCategory
 import kotlinx.coroutines.flow.Flow
@@ -26,23 +26,15 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE timestamp >= :startMillis AND timestamp < :endMillis ORDER BY timestamp DESC, id DESC")
     suspend fun getInRange(startMillis: Long, endMillis: Long): List<ExpenseWithCategory>
 
-    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM expenses WHERE timestamp >= :startMillis AND timestamp < :endMillis")
-    fun observeTotalInRange(startMillis: Long, endMillis: Long): Flow<Double>
-
-    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM expenses WHERE timestamp >= :startMillis AND timestamp < :endMillis")
-    suspend fun getTotalInRange(startMillis: Long, endMillis: Long): Double
-
-    @Query("SELECT COALESCE(SUM(amount), 0.0) FROM expenses WHERE categoryId = :categoryId AND timestamp >= :startMillis AND timestamp < :endMillis")
-    suspend fun getTotalForCategoryInRange(categoryId: String, startMillis: Long, endMillis: Long): Double
-
-    @Query("SELECT COUNT(*) FROM expenses WHERE timestamp >= :startMillis AND timestamp < :endMillis")
-    fun observeCountInRange(startMillis: Long, endMillis: Long): Flow<Int>
-
-    @Query("SELECT COUNT(*) FROM expenses WHERE timestamp >= :startMillis AND timestamp < :endMillis")
-    suspend fun getCountInRange(startMillis: Long, endMillis: Long): Int
-
-    @Query("SELECT categoryId, COALESCE(SUM(amount), 0.0) AS total, COUNT(*) AS count FROM expenses WHERE timestamp >= :startMillis AND timestamp < :endMillis GROUP BY categoryId ORDER BY total DESC")
-    fun observeCategoryTotalsInRange(startMillis: Long, endMillis: Long): Flow<List<CategoryTotalRow>>
+    @Query("""
+        SELECT UPPER(currencyCode) AS currencyCode, SUM(amount) AS total, COUNT(*) AS count
+        FROM expenses
+        WHERE timestamp >= :startMillis AND timestamp < :endMillis
+          AND (:categoryId IS NULL OR expenses.categoryId = :categoryId)
+        GROUP BY UPPER(currencyCode)
+        ORDER BY UPPER(currencyCode)
+    """)
+    suspend fun getCurrencyTotals(startMillis: Long, endMillis: Long, categoryId: String? = null): List<CurrencyTotal>
 
     @Transaction
     @Query("SELECT * FROM expenses ORDER BY createdAt DESC, id DESC LIMIT 1")

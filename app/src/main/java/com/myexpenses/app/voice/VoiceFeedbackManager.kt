@@ -2,6 +2,7 @@ package com.myexpenses.app.voice
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import android.speech.tts.Voice
 import com.myexpenses.app.domain.parser.TextNormalizer
 import java.util.Locale
 
@@ -43,15 +44,20 @@ class VoiceFeedbackManager(context: Context) {
             } else {
                 Locale.US
             }
-            val avail = engine.isLanguageAvailable(locale)
-            if (avail >= TextToSpeech.LANG_AVAILABLE) {
-                engine.language = locale
-            }
+            val localVoice = engine.voices.orEmpty()
+                .filter { voice ->
+                    voice.locale.language == locale.language && !voice.isNetworkConnectionRequired &&
+                        TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED !in voice.features.orEmpty()
+                }
+                .maxWithOrNull(compareBy<Voice> { it.locale == locale }.thenBy { it.quality })
+                ?: return
+            if (engine.setVoice(localVoice) != TextToSpeech.SUCCESS) return
             engine.speak(message, TextToSpeech.QUEUE_FLUSH, null, "my_expenses_tts")
         }
     }
 
     fun stop() {
+        pendingMessage = null
         runCatching { tts?.stop() }
     }
 
@@ -62,5 +68,6 @@ class VoiceFeedbackManager(context: Context) {
         }
         tts = null
         isReady = false
+        pendingMessage = null
     }
 }

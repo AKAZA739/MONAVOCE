@@ -1,6 +1,8 @@
+<div dir="rtl" lang="ar">
+
 # 10 — خارطة طريق الإصلاح والتحول إلى MONAVOCE (Prioritized Remediation Roadmap)
 
-تحدد خارطة الطريق هذه الترتيب الهندسي الدقيق لمعالجة الملاحظات المسجلة في [09-findings-register.md](file:///d:/My%20expensives/docs/monavoce-audit/09-findings-register.md) وتحويل التطبيق إلى إصدار الإنتاج العالمي **MONAVOCE v2.0.0**.
+تحدد خارطة الطريق هذه الترتيب الهندسي الدقيق لمعالجة الملاحظات المسجلة في [09-findings-register.md](09-findings-register.md) وتحويل التطبيق إلى إصدار الإنتاج العالمي **MONAVOCE v2.0.0**.
 
 ---
 
@@ -55,3 +57,5 @@ flowchart LR
 1. **قفل الخزنة بالبصمة (`Biometric Vault Lock`):** حماية فتح التطبيق عبر `BiometricPrompt` (بصمة الإصبع أو الوجه) مع تشفير اختياري لقاعدة البيانات عبر `SQLCipher`.
 2. **الميزانيات الشهرية والتنبيهات الصوتية (`Smart Budgets`):** تحديد سقف إنفاق شهري لكل فئة مع شريط تقدم تحذيري.
 3. **تعدد المحافظ/الحسابات (`Personal vs. Business Wallets`):** التبديل بين محفظة شخصية ومحفظة عمل في أعلى لوحة التحكم.
+
+</div>

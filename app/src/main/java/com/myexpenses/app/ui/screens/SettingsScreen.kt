@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.myexpenses.app.BuildConfig
 import com.myexpenses.app.data.preferences.SupportedCurrencies
 import com.myexpenses.app.data.preferences.UserPreferences
 import com.myexpenses.app.voice.OfflineSpeechStatus
@@ -88,9 +89,9 @@ fun SettingsScreen(
             ) {
                 Text(
                     text = if (isArabic) {
-                        "قيود Android الفعلية: لا يسمح النظام للتطبيقات العادية باعتراض الضغط المزدوج على زر Power بدون Root. لذلك وفّرنا أسرع البدائل الرسمية والآمنة التي تفتح واجهة التسجيل الصوتي فورًا دون فتح التطبيق كاملًا:"
+                        "افتح نافذة التسجيل من الإعدادات السريعة، أو اختصار الشاشة الرئيسية، أو الإشعار السريع."
                     } else {
-                        "Android OS Restriction: Standard non-rooted apps cannot hijack double-press Power Button natively. Here are the fastest official, zero-root alternatives that open the floating voice popup directly:"
+                        "Open the recording panel from Quick Settings, a home screen shortcut, or the quick notification."
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -142,18 +143,14 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = if (isArabic) "تخصيص أزرار الهاتف رسميًا (بدون Root):" else "Official Hardware Button Mapping (No Root):",
+                            text = if (isArabic) "التشغيل من الزر الجانبي" else "Launch from the side button",
                             style = MaterialTheme.typography.labelLarge
                         )
                         Text(
                             text = if (isArabic) {
-                                "• الضغط المطوّل على زر التشغيل (المساعد الرقمي): يدعم التطبيق رسميًا Android Digital Assistant ليفتح نافذة الصوت فورًا حتى فوق شاشة القفل مع إبقاء الضغط مرتين للكاميرا!\n" +
-                                    "• هواتف Samsung (فتح بالضغط مرتين): الإعدادات ← الميزات المتقدمة ← الزر الجانبي ← الضغط مرتين ← فتح تطبيق ← اختر \"تسجيل مصروف بالصوت\".\n" +
-                                    "• شاشة القفل / الشاشة الرئيسية: أضف Widget مصاريفي أو الإشعار السريع الثابت أعلاه."
+                                "إذا كان هاتفك يدعم ربط الضغط المطوّل على الزر الجانبي بالمساعد الرقمي، اختر مصاريفي كمساعد افتراضي. تختلف خيارات الزر وشاشة القفل حسب الجهاز وإصدار النظام."
                             } else {
-                                "• Press & Hold Power (Digital Assistant): Officially supported via Android VoiceInteractionService — opens the voice popup even over lock screen while keeping Double-Press for Camera!\n" +
-                                    "• Samsung Side Key (Double Press): Settings → Advanced Features → Side Button → Double Press → Open App → Quick Voice Expense.\n" +
-                                    "• Lock Screen / Home Widget: Add the My Expenses Widget or enable the persistent notification above."
+                                "If your phone can open the digital assistant by holding the side button, select My Expenses as the default assistant. Side-button and lock-screen options vary by device and Android version."
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -217,9 +214,9 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (isArabic) {
-                            "محرك Google المحلي على هذا الهاتف لا يوفر حزمة عربية بدون إنترنت حاليًا. لتشغيل العربية فورًا يمكنك تفعيل «البديل السحابي الاختياري» أدناه."
+                            "يمكنك استيراد نموذج العربية المحلي من ملف ZIP أدناه."
                         } else {
-                            "Google's on-device engine on this phone does not currently provide an offline Arabic pack. Enable optional online fallback below to use Arabic immediately."
+                            "You can import the on-device Arabic model from a ZIP file below."
                         },
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.tertiary
@@ -260,8 +257,8 @@ fun SettingsScreen(
 
                 SettingsSwitchRow(
                     title = if (isArabic) "السماح بالتعرف السحابي كبديل اختياري" else "Allow Optional Online Speech Fallback",
-                    subtitle = if (isArabic) "مغلق افتراضيًا لحماية الخصوصية. فعّله فقط إذا لم تتوفر حزمة اللغة المحلية على جهازك."
-                    else "OFF by default for strict privacy. Enable only if your device lacks an offline pack.",
+                    subtitle = if (isArabic) "مغلق افتراضيًا. عند استخدام البديل، قد ترسل خدمة التعرف الصوتي الصوت إلى مزوّدها."
+                    else "Off by default. When the fallback is used, your speech service may send audio to its provider.",
                     checked = preferences.allowOnlineSpeechFallback,
                     onCheckedChange = onOnlineFallbackToggle
                 )
@@ -312,7 +309,8 @@ fun SettingsScreen(
 
                 SettingsSwitchRow(
                     title = if (isArabic) "الرد الصوتي (قراءة التأكيد والإجابات)" else "Spoken Voice Feedback (TTS)",
-                    subtitle = if (isArabic) "مثال: \"تم تسجيل 500 ريال على البقالة\"" else "e.g. \"Saved 500 YER for Groceries\"",
+                    subtitle = if (isArabic) "يقرأ التأكيدات والإجابات إذا توفر صوت محلي للغة."
+                    else "Reads confirmations and answers when a local voice is available.",
                     checked = preferences.voiceFeedbackEnabled,
                     onCheckedChange = onVoiceFeedbackToggle
                 )
@@ -418,9 +416,9 @@ fun SettingsScreen(
                 ) {
                     Text(
                         text = if (isArabic) {
-                            "التطبيق لا يطلب صلاحية الإنترنت أصلًا، ولا يجمع أي بيانات، ولا يحتوي على تتبع أو إعلانات، وجميع مصروفاتك محفوظة محليًا على هاتفك فقط."
+                            "تُحفظ مصروفاتك على جهازك. قد تتضمن ملفات التصدير والنسخ الاحتياطية ملاحظاتك والنص المفرّغ من التسجيل."
                         } else {
-                            "This app does not even request INTERNET permission. Zero analytics, zero cloud sync, zero accounts — all expenses remain 100% local on your phone."
+                            "Your expenses are stored on your device. Exports and backups may contain your notes and speech transcriptions."
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -465,7 +463,8 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "My Expenses | مصاريفي v1.3.0 • 100% Offline & Private",
+                    text = if (isArabic) "مصاريفي • الإصدار ${BuildConfig.VERSION_NAME}"
+                    else "My Expenses • ${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +49,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,7 +69,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.os.LocaleListCompat
+import com.myexpenses.app.data.backup.ValidatedBackup
 import com.myexpenses.app.data.local.entity.ExpenseEntity
+import com.myexpenses.app.data.preferences.SupportedCurrencies
+import com.myexpenses.app.quicklaunch.ExpenseWidgetProvider
 import com.myexpenses.app.quicklaunch.QuickLaunchHelper
 import com.myexpenses.app.ui.components.ExpenseEditorDialog
 import com.myexpenses.app.ui.components.VoiceOverlayPanel
@@ -206,22 +211,25 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            var pendingBackup by remember { mutableStateOf<ValidatedBackup?>(null) }
+            var restoreBusy by remember { mutableStateOf(false) }
             val jsonRestoreLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.OpenDocument()
             ) { uri ->
-                if (uri != null) {
+                if (uri != null && !restoreBusy) {
+                    restoreBusy = true
                     scope.launch {
-                        val res = appContainer.backupManager.restoreJsonBackup(uri)
-                        val msg = res.fold(
-                            onSuccess = { summary ->
-                                if (isArabic) "تمت الاستعادة: ${summary.restoredExpenses} مصروف و${summary.restoredCategories} فئة"
-                                else "Restored ${summary.restoredExpenses} expenses & ${summary.restoredCategories} categories"
-                            },
-                            onFailure = { err ->
-                                if (isArabic) "ملف النسخة غير صالح: ${err.localizedMessage}" else "Invalid backup file: ${err.localizedMessage}"
-                            }
-                        )
-                        snackbarHostState.showSnackbar(msg)
+                        val result = try {
+                            appContainer.backupManager.readJsonBackup(uri)
+                        } finally {
+                            restoreBusy = false
+                        }
+                        result.onSuccess { pendingBackup = it }.onFailure {
+                            snackbarHostState.showSnackbar(
+                                if (isArabic) "تعذّرت قراءة نسخة احتياطية صالحة لمصاريفي"
+                                else "Could not read a valid My Expenses backup"
+                            )
+                        }
                     }
                 }
             }
@@ -299,6 +307,7 @@ class MainActivity : AppCompatActivity() {
                                 currency = prefs.currency,
                                 isArabic = isArabic,
                                 onSelectPeriod = { mainViewModel.selectPeriod(it) },
+                                onSelectChartCurrency = { mainViewModel.selectChartCurrency(it) },
                                 onStepDate = { mainViewModel.stepDate(it) },
                                 onSelectToday = { mainViewModel.selectDate(LocalDate.now()) },
                                 onOpenCategories = { selectedTab = 2 },
@@ -335,9 +344,13 @@ class MainActivity : AppCompatActivity() {
                                 preferences = prefs,
                                 offlineStatus = offlineStatus,
                                 isArabic = isArabic,
-                                onCurrencyChange = { mainViewModel.prefsRepo.setCurrencyCode(it) },
+                                onCurrencyChange = {
+                                    mainViewModel.prefsRepo.setCurrencyCode(it)
+                                    ExpenseWidgetProvider.requestUpdate(this@MainActivity)
+                                },
                                 onAppLanguageChange = { lang ->
                                     mainViewModel.prefsRepo.setAppLanguage(lang)
+                                    ExpenseWidgetProvider.requestUpdate(this@MainActivity)
                                     val localeTags = when (lang) {
                                         "ar" -> LocaleListCompat.forLanguageTags("ar")
                                         "en" -> LocaleListCompat.forLanguageTags("en")
@@ -416,7 +429,9 @@ class MainActivity : AppCompatActivity() {
                                 onOpenSpeechSettings = { QuickLaunchHelper.openVoiceInputSettings(this@MainActivity) },
                                 onExportCsv = { csvExportLauncher.launch("my_expenses_${LocalDate.now()}.csv") },
                                 onBackupJson = { jsonBackupLauncher.launch("my_expenses_backup_${LocalDate.now()}.json") },
-                                onRestoreJson = { jsonRestoreLauncher.launch(arrayOf("application/json", "*/*")) }
+                                onRestoreJson = {
+                                    if (!restoreBusy) jsonRestoreLauncher.launch(arrayOf("application/json", "*/*"))
+                                }
                             )
                         }
 
@@ -493,6 +508,46 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                pendingBackup?.let { backup ->
+                    AlertDialog(
+                        onDismissRequest = { pendingBackup = null },
+                        title = { Text(if (isArabic) "استعادة النسخة الاحتياطية؟" else "Restore backup?") },
+                        text = {
+                            val summary = backup.summary
+                            Text(
+                                if (isArabic) "سيتم استبدال سجل المصروفات والفئات الحالية بالكامل. المصروفات في النسخة: ${summary.restoredExpenses}، الفئات: ${summary.restoredCategories}."
+                                else "This replaces your current expenses and categories. Expenses in backup: ${summary.restoredExpenses}. Categories: ${summary.restoredCategories}."
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                if (restoreBusy) return@TextButton
+                                pendingBackup = null
+                                restoreBusy = true
+                                scope.launch {
+                                    val result = try {
+                                        appContainer.backupManager.restoreBackup(backup)
+                                    } finally {
+                                        restoreBusy = false
+                                    }
+                                    val message = if (result.isSuccess) {
+                                        if (isArabic) "تمت استعادة النسخة الاحتياطية" else "Backup restored"
+                                    } else {
+                                        if (isArabic) "تعذّرت الاستعادة. بقيت بياناتك الحالية محفوظة."
+                                        else "Restore failed. Your current data is still saved."
+                                    }
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            }) { Text(if (isArabic) "استعادة واستبدال" else "Restore and replace") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { pendingBackup = null }) {
+                                Text(if (isArabic) "إلغاء" else "Cancel")
+                            }
+                        }
+                    )
+                }
+
                 if (showManualAddDialog) {
                     ExpenseEditorDialog(
                         initialExpense = null,
@@ -512,7 +567,7 @@ class MainActivity : AppCompatActivity() {
                     ExpenseEditorDialog(
                         initialExpense = expense,
                         categories = categories,
-                        currency = prefs.currency,
+                        currency = SupportedCurrencies.forExpense(expense.currencyCode),
                         isArabic = isArabic,
                         onDismiss = { editingExpense = null },
                         onSave = { amount, catId, note, ts ->

@@ -1,33 +1,45 @@
-# Privacy Policy | سياسة الخصوصية — My Expenses | مصاريفي
+<div dir="rtl" lang="ar">
 
-_Last updated / آخر تحديث: 2026-11-22_
+# سياسة الخصوصية — مصاريفي
 
----
+[English](#privacy-policy--my-expenses) · [مصاريفي](README.md)
 
-## العربية
+آخر تحديث 22 نوفمبر 2026.
 
-تطبيق **My Expenses | مصاريفي** مصمّم بمبدأ **الخصوصية أولًا والعمل دون إنترنت (Offline-First & Privacy-First)**.
+## البيانات المحفوظة
 
-1. **عدم طلب صلاحية الإنترنت أصلًا:** التطبيق لا يطلب إذن `android.permission.INTERNET` في ملف الـ Manifest، ولا يتصل بأي خادم خارجي من تلقاء نفسه، ولا يحتوي على أي إعلانات أو أدوات تتبع أو تحليلات (Analytics).
-2. **تخزين محلي 100%:** جميع مصروفاتك، الفئات، الكلمات المفتاحية، والإعدادات تُحفظ محليًا على هاتفك فقط داخل قاعدة بيانات Room (SQLite) وتفضيلات الجهاز الخاصة بالتطبيق.
-3. **الميكروفون والتعرف الصوتي:**
-   - تُطلب صلاحية الميكروفون (`RECORD_AUDIO`) فقط عندما تبدأ التسجيل الصوتي بفعلك المباشر.
-   - لا يعمل الميكروفون أبدًا في الخلفية أو دون فتح نافذة التسجيل.
-   - عند استخدام المحرك المحلي (Sherpa-ONNX للعربية أو حزمة الجهاز للإنجليزية)، تتم معالجة الصوت بالكامل داخل جهازك بدون أي اتصال بالشبكة.
-   - إذا اختار المستخدم تفعيل «البديل السحابي الاختياري» على أجهزة لا تتوفر فيها حزم محلية لخدمة النظام، تتم المعالجة عبر خدمة التعرف الصوتي للنظام (Google Speech Services) بموافقة المستخدم الصريحة فقط.
-4. **النسخ الاحتياطي والتحكم الكامل ببياناتك:** يمكنك تصدير مصروفاتك بصيغة CSV أو أخذ نسخة احتياطية JSON محلية واستعادتها أو حذفها في أي وقت.
+يحفظ التطبيق المصروفات والفئات والإعدادات محليًا على جهازك. قد يتضمن المصروف النص الناتج من التعرف على صوتك. التطبيق لا يطلب إذن الإنترنت، ولا يحتوي على إعلانات أو أدوات تتبّع أو تحليلات، ولا يتطلب حسابًا.
 
----
+## الصوت والميكروفون
 
-## English
+يطلب التطبيق صلاحية الميكروفون لميزة التسجيل الصوتي. يبدأ الاستماع من واجهة التسجيل، بما فيها نافذة التشغيل السريع. عند استخدام نموذج العربية المستورد أو محرك Android المحلي، تتم معالجة الصوت على جهازك.
 
-**My Expenses | مصاريفي** is built from the ground up on **Offline-First & Strict Privacy** principles.
+البديل السحابي مغلق افتراضيًا. إذا فعّلته، قد تُرسل خدمة التعرف الصوتي في جهازك الصوت إلى مزوّدها لمعالجته عندما يُستخدم البديل. يمكنك إيقافه من إعدادات التطبيق.
 
-1. **Zero Internet Permission:** The app does **not** declare `android.permission.INTERNET` in its manifest, never sends telemetry or analytics, contains zero ads, and requires no account or login.
-2. **100% Local Storage:** All expenses, categories, keywords, and preferences are stored strictly on your device inside a local Room (SQLite) database and private SharedPreferences.
-3. **Microphone & Speech Recognition:**
-   - `RECORD_AUDIO` permission is requested only when you explicitly initiate voice input.
-   - The microphone never runs passively or in the background.
-   - With the on-device speech engine (Sherpa-ONNX for Arabic / on-device pack for English), audio is processed entirely on your phone CPU with zero network transmission.
-   - Only if you explicitly opt in to the optional system speech fallback will audio be routed through your device's system `SpeechRecognizer` provider.
-4. **Data Portability:** You have full ownership of your data via local CSV export and JSON backup/restore.
+تُقرأ الردود الصوتية عند توفر صوت محلي للغة على جهازك.
+
+## التصدير والنسخ الاحتياطي
+
+يتيح التطبيق تصدير المصروفات كملف CSV وحفظ نسخة JSON في المكان الذي تختاره. قد تحتوي هذه الملفات على مبالغ وملاحظات ونصوص مُفرّغة من التسجيل. يمكنك حذف الملفات المصدّرة من مكان حفظها. استعادة نسخة JSON تستبدل المصروفات والفئات الحالية بعد تأكيدك.
+
+</div>
+
+# Privacy policy — My Expenses
+
+Last updated November 22, 2026.
+
+## Stored data
+
+Expenses, categories, and preferences are stored on your device. An expense may include text transcribed from your speech. The app does not request Internet permission, include ads or analytics, or require an account.
+
+## Speech and microphone
+
+The app requests microphone access for voice entry. Listening starts from the recording interface, including the quick voice panel. The imported Arabic model and Android's on-device recognizer process speech on your device.
+
+Online speech fallback is off by default. If you enable it, your device's speech provider may send audio to its service for processing when the fallback is used. You can turn it off in settings.
+
+Spoken feedback uses an installed on-device voice when one is available for the language.
+
+## Exports and backups
+
+You can save CSV exports and JSON backups to a location you choose. They may contain expense amounts, notes, and transcriptions. You can delete exported files from their saved location. Restoring a JSON backup replaces your current expenses and categories after you confirm.

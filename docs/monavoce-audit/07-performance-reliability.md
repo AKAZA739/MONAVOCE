@@ -1,3 +1,5 @@
+<div dir="rtl" lang="ar">
+
 # 07 — تدقيق الأداء والاعتمادية والقياسات الفعلية (Performance, Reliability & Benchmarks Audit)
 
 يعتمد هذا التقرير على قياسات فعلية أُجريت على الهاتف الحقيقي المتصل (**Samsung Galaxy A54 5G — `SM-A546E` — Exynos 1380 `arm64-v8a` — Android 16 / One UI 8.5**) وعلى مخرجات بناء النسخة النهائية (`Release` و`Debug`).
@@ -22,7 +24,7 @@
 ## 2. تحليل استهلاك الذاكرة والبطارية والملاحظات الأدائية (Performance & Memory Findings)
 
 ### 1. `[MONA-PERF-001]` (Medium) — تحميل جدول المصاريف بالكامل إلى الذاكرة وإجراء التصفية والجمع على الخيط الرئيسي في `MainViewModel`
-- **الموقع الدقيق:** [MainViewModel.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/ui/MainViewModel.kt#L75-L186):
+- **الموقع الدقيق:** [MainViewModel.kt](../../app/src/main/java/com/myexpenses/app/ui/viewmodel/MainViewModel.kt):
   ```kotlin
   val dashboardState: StateFlow<DashboardUiState> = combine(
       repo.observeAllExpenses(),
@@ -40,7 +42,7 @@
   ```
 - **التحليل والسبب الجذري:**
   - يستمع `MainViewModel` إلى `repo.observeAllExpenses()` الذي يجلب **جميع** الصفوف من جدول `expenses` عبر SQLite، ثم يمرر القائمة الكاملة عبر أكثر من **8 حلقات `.filter { ... }` و`.sumOf { ... }` و`.groupBy { ... }`** داخل كتلة `combine` التي تعمل افتراضيًا على الخيط الرئيسي (`viewModelScope` -> `Dispatchers.Main.immediate`).
-  - اللافت أن ملف [ExpenseDao.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/data/local/ExpenseDao.kt#L22-L45) يحتوي أصلاً على استعلامات SQL مفهرسة وجاهزة (`observeInRange`, `observeTotalInRange`, `observeCategoryTotalsInRange`)، لكن لم يتم استخدامها بعد إضافة ميزة تصفح التواريخ (`selectedDate`)!
+  - اللافت أن ملف [ExpenseDao.kt](../../app/src/main/java/com/myexpenses/app/data/local/dao/ExpenseDao.kt) يحتوي أصلاً على استعلامات SQL مفهرسة وجاهزة (`observeInRange`, `observeTotalInRange`, `observeCategoryTotalsInRange`)، لكن لم يتم استخدامها بعد إضافة ميزة تصفح التواريخ (`selectedDate`)!
 - **الأثر الأدائي:** مع 100–500 مصروف لا يشعر المستخدم بأي بطء، لكن بعد استخدام التطبيق لعدة سنوات (مثلاً `10,000+` عملية)، فإن كل حرف يكتبه المستخدم في شريط البحث (`searchQuery`) أو كل تغيير للتاريخ سيعيد تخصيص آلاف الكائنات في الذاكرة على خيط الواجهة الرئيسي (`UI Jank / Frame Drops`).
 - **الإصلاح المقترح:**
   1. نقل عمليات الحساب والتصفية الثقيلة إلى `.flowOn(Dispatchers.Default)` وفصل تصفية `searchQuery` عن إعادة حساب إجماليات اليوم والأسبوع والشهر.
@@ -49,7 +51,7 @@
 ---
 
 ### 2. `[MONA-VOX-003]` (Medium) — استهلاك `~220 MB` من الذاكرة الأصلية (`Native Heap`) عند تشغيل التطبيق في الخلفية بسبب التحميل المسبق غير المشروط لـ Sherpa-ONNX
-- **الموقع الدقيق:** [MyExpensesApp.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/MyExpensesApp.kt#L32) (`container.sherpaArabicEngine.warmUpAsync()`).
+- **الموقع الدقيق:** [MyExpensesApp.kt](../../app/src/main/java/com/myexpenses/app/MyExpensesApp.kt) (`container.sherpaArabicEngine.warmUpAsync()`).
 - **التحليل:** كما وُثق في تقرير الصوت، فإن تحميل `OfflineRecognizer` في `Application.onCreate()` يحجز حوالي `200–250 MB` من الذاكرة الأصلية (`C++ ONNX Runtime Arena`) حتى لو كان النظام قد أيقظ عملية التطبيق في الخلفية فقط لتنفيذ `ExpenseWidgetProvider.onUpdate()`.
 - **الإصلاح المقترح:** تفعيل `warmUpAsync()` بشكل كسول (Lazy Warm-up) فقط عند إنشاء `MainActivity` أو `QuickVoiceActivity` أو `ExpenseVoiceInteractionSessionService`، مع إمكانية تحرير المحرك (`release()`) عند استلام `Application.onTrimMemory(TRIM_MEMORY_UI_HIDDEN)` وتوفير ذاكرة الهاتف.
 
@@ -57,8 +59,8 @@
 
 ### 3. `[MONA-ARCH-001]` (Low) — كود غير مستخدم (Dead/Unused DAO Queries) وإنشاء `CoroutineScope` غير مهيكل في `ExpenseWidgetProvider`
 - **المواقع الدقيقة:**
-  1. [ExpenseDao.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/data/local/ExpenseDao.kt#L22-L45) والسطر [57](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/data/local/ExpenseDao.kt#L57): الدوال `observeInRange`, `getInRange`, `observeTotalInRange`, `observeCountInRange`, `observeCategoryTotalsInRange`, `getAllRaw` غير مستدعاة حاليًا.
-  2. [ExpenseWidgetProvider.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/widget/ExpenseWidgetProvider.kt#L28-L45): ينشئ `CoroutineScope(Dispatchers.IO).launch` جديدًا في كل مرة يُستدعى فيها `onUpdate` أو `updateAllWidgets` دون استخدام `goAsync()` في `BroadcastReceiver.onUpdate`، مما قد يسمح للنظام بإنهاء العملية قبل اكتمال قراءة قاعدة البيانات إذا كان الجهاز تحت ضغط ذاكرة عالٍ.
+  1. [ExpenseDao.kt](../../app/src/main/java/com/myexpenses/app/data/local/dao/ExpenseDao.kt) والسطر [57](../../app/src/main/java/com/myexpenses/app/data/local/dao/ExpenseDao.kt): الدوال `observeInRange`, `getInRange`, `observeTotalInRange`, `observeCountInRange`, `observeCategoryTotalsInRange`, `getAllRaw` غير مستدعاة حاليًا.
+  2. [ExpenseWidgetProvider.kt](../../app/src/main/java/com/myexpenses/app/quicklaunch/ExpenseWidgetProvider.kt): ينشئ `CoroutineScope(Dispatchers.IO).launch` جديدًا في كل مرة يُستدعى فيها `onUpdate` أو `updateAllWidgets` دون استخدام `goAsync()` في `BroadcastReceiver.onUpdate`، مما قد يسمح للنظام بإنهاء العملية قبل اكتمال قراءة قاعدة البيانات إذا كان الجهاز تحت ضغط ذاكرة عالٍ.
 
 ---
 
@@ -68,4 +70,6 @@
   - محمية بشكل ممتاز بـ `activeSessionId` ذري (`AtomicInteger`)، وتُغلق الجلسة فورًا في `QuickVoiceActivity.onStop()` وفي `MainViewModel.onCleared()`، مما يمنع بقاء الميكروفون مفتوحًا في الخلفية.
 - **تدوير الشاشة (`Configuration Changes`) وإغلاق العملية (`Process Death`):**
   - يستخدم التطبيق `ViewModel` لإدارة الحالة، وتُحفظ الإعدادات في `DataStore` + `SharedPreferences` والمصاريف في `Room SQLite`.
-  - يوصى بحفظ النص الجاري كتابته في حوار الإضافة اليدوية عبر `rememberSaveable` بدلاً من `remember` العادي في [DashboardScreen.kt](file:///d:/My%20expensives/app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt#L603-L606) حتى لا يضيع النص إذا دوّر المستخدم الشاشة أثناء كتابة مصروف يدوي.
+  - يوصى بحفظ النص الجاري كتابته في حوار الإضافة اليدوية عبر `rememberSaveable` بدلاً من `remember` العادي في [DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt) حتى لا يضيع النص إذا دوّر المستخدم الشاشة أثناء كتابة مصروف يدوي.
+
+</div>

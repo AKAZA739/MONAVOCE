@@ -116,7 +116,7 @@ fun ExpenseChartCard(
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = DateTimeUtils.formatAmount(totalAmount),
+                                text = DateTimeUtils.formatAmount(totalAmount, currency),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
@@ -165,7 +165,7 @@ fun ExpenseChartCard(
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "${DateTimeUtils.formatAmount(item.total)} ($pct%)",
+                                        text = "${DateTimeUtils.formatAmount(item.total, currency)} ($pct%)",
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface
