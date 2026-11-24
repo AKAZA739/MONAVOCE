@@ -110,7 +110,7 @@ object QuickLaunchHelper {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_mic_tile)
-            .setContentTitle(context.getString(R.string.quick_notif_title))
+            .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.quick_notif_body))
             .setContentIntent(pendingIntent)
             .setOngoing(true)

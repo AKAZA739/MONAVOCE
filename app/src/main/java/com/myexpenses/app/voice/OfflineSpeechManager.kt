@@ -274,8 +274,11 @@ class OfflineSpeechManager(
 
     private fun flushPendingStart() {
         val pending = pendingStartRequest ?: return
-        pendingStartRequest = null
-        mainHandler.post(pending)
+        mainHandler.post {
+            if (pendingStartRequest !== pending) return@post
+            pendingStartRequest = null
+            pending()
+        }
     }
 
     /**
@@ -372,16 +375,6 @@ class OfflineSpeechManager(
                 return@runOnMain
             }
 
-            // Wait for any active probe to finish first so we NEVER open 2 concurrent sessions
-            // (which causes AiAiSpeechRecognitionService#onDestroy -> ERROR_SERVER_DISCONNECTED!)
-            if (isProbing) {
-                Log.i(TAG, "Deferring startListening until offline support probe finishes")
-                pendingStartRequest = {
-                    startListeningInternal(languageCode, allowOnlineFallback, arabicLocalePreference)
-                }
-                return@runOnMain
-            }
-
             startListeningInternal(languageCode, allowOnlineFallback, arabicLocalePreference)
         }
     }
@@ -391,18 +384,26 @@ class OfflineSpeechManager(
         allowOnlineFallback: Boolean,
         arabicLocalePreference: String
     ) {
-        stopAndReleaseInternal()
-
-        val status = _offlineStatus.value
         val wantArabic = languageCode.startsWith("ar", ignoreCase = true)
+        val sherpa = sherpaArabicEngine?.takeIf { wantArabic && it.isModelInstalled() }
 
-        // Priority 1: Use embedded 100% offline Sherpa-ONNX Arabic engine when installed!
-        val sherpa = sherpaArabicEngine
-        if (wantArabic && sherpa != null && sherpa.isModelInstalled()) {
+        // Only Android's recognizer shares a service with the support probe.
+        if (sherpa == null && isProbing) {
+            Log.i(TAG, "Deferring Android recognition until the support probe finishes")
+            pendingStartRequest = {
+                startListeningInternal(languageCode, allowOnlineFallback, arabicLocalePreference)
+            }
+            return
+        }
+
+        pendingStartRequest = null
+        stopAndReleaseInternal()
+        if (sherpa != null) {
             launchSherpaArabicOffline(sherpa)
             return
         }
 
+        val status = _offlineStatus.value
         val targetTag = resolveTargetLocaleTag(languageCode, arabicLocalePreference)
 
         val onDeviceReady = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&

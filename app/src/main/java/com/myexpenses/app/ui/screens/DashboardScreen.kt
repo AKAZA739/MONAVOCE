@@ -49,10 +49,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.myexpenses.app.R
 import com.myexpenses.app.data.local.entity.ExpenseEntity
 import com.myexpenses.app.data.local.entity.ExpenseWithCategory
 import com.myexpenses.app.data.preferences.CurrencyOption
@@ -101,7 +103,7 @@ fun DashboardScreen(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 116.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Top Segmented Pill Switcher (inspired by Personal | Business pill in reference)
+        // Switch between the selected period and all recent expenses.
         item {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -115,7 +117,7 @@ fun DashboardScreen(
                         .padding(4.dp)
                 ) {
                     TopSegmentPill(
-                        label = if (isArabic) "مصاريفي" else "Personal",
+                        label = stringResource(R.string.app_name),
                         selected = !topModeAll,
                         onClick = { topModeAll = false },
                         modifier = Modifier.weight(1f)

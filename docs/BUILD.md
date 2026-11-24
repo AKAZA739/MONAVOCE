@@ -1,4 +1,4 @@
-# Building and signing My Expenses
+# Building and signing MONAVOCE
 
 Use JDK 21 and Android SDK Platform 35. Configure the SDK in Android Studio or set `ANDROID_HOME`. Run the commands from the repository root.
 

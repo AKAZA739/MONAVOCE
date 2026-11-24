@@ -11,7 +11,7 @@ import android.speech.SpeechRecognizer
 import android.util.Log
 
 /**
- * Official Android VoiceInteractionService so My Expenses appears natively in
+ * Android VoiceInteractionService so MONAVOCE appears natively in
  * Android Digital Assistant & Samsung One UI "Side button -> Press and hold -> Digital assistant".
  *
  * Uses ZERO background microphone or CPU when idle.

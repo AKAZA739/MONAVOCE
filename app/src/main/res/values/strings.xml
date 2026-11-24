@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">My Expenses</string>
+    <string name="app_name" translatable="false">MONAVOCE</string>
     <string name="quick_voice_label">Quick Voice Expense</string>
     <string name="tile_label">Log Expense</string>
-    <string name="widget_label">My Expenses Quick Voice</string>
+    <string name="widget_label">MONAVOCE Quick Voice</string>
     <string name="shortcut_voice_short">Voice Log</string>
     <string name="shortcut_voice_long">Record expense by voice</string>
     <string name="widget_today_label">Today\'s Expenses</string>
     <string name="widget_tap_to_record">Tap to speak</string>
     <string name="quick_notif_channel_name">Quick Expense Shortcut</string>
     <string name="quick_notif_channel_desc">Optional persistent shortcut to start voice expense logging from notification shade or lock screen</string>
-    <string name="quick_notif_title">My Expenses | مصاريفي</string>
     <string name="quick_notif_body">Tap to record an expense by voice</string>
     <string name="quick_notif_action">Record</string>
 </resources>

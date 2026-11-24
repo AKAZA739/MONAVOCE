@@ -6,6 +6,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.net.Uri
+import android.os.SystemClock
 import android.util.Log
 import com.k2fsa.sherpa.onnx.FeatureConfig
 import com.k2fsa.sherpa.onnx.OfflineModelConfig
@@ -228,7 +229,8 @@ class SherpaOfflineArabicEngine(context: Context) {
 
                 val chunkSamples = SAMPLE_RATE / 20 // 50 ms frames (800 samples)
                 val shortBuf = ShortArray(chunkSamples)
-                val captured = ArrayList<Float>(SAMPLE_RATE * 8)
+                val captured = FloatArray(MAX_RECORDING_SAMPLES)
+                var capturedSamples = 0
 
                 audioRecord.startRecording()
                 onStatusText("")
@@ -239,23 +241,21 @@ class SherpaOfflineArabicEngine(context: Context) {
                 var lastSpeechSampleIdx = 0
                 var noiseFloorSum = 0f
                 var noiseFloorFrames = 0
-                var framesSinceSpeech = 0
                 var totalFrames = 0
 
-                val maxTotalFrames = 240 // 12 seconds max
-                val maxInitialSilenceFrames = 130 // 6.5 seconds waiting for user to speak
-                val postSpeechSilenceFrames = 26 // 1.3 seconds of silence after speech -> auto stop
-
-                while (isActive && !cancelRequested && !stopRequested && totalFrames < maxTotalFrames) {
-                    val read = audioRecord.read(shortBuf, 0, chunkSamples)
-                    if (read <= 0) continue
+                while (isActive && !cancelRequested && !stopRequested && capturedSamples < captured.size) {
+                    val samplesToRead = minOf(chunkSamples, captured.size - capturedSamples)
+                    val read = audioRecord.read(shortBuf, 0, samplesToRead)
+                    check(read >= 0) { "AudioRecord read failed (code=$read)" }
+                    if (read == 0) continue
 
                     var sumSq = 0.0
                     for (i in 0 until read) {
                         val f = shortBuf[i] / 32768.0f
-                        captured.add(f)
+                        captured[capturedSamples + i] = f
                         sumSq += (f * f).toDouble()
                     }
+                    capturedSamples += read
                     val rms = sqrt(sumSq / read).toFloat()
                     totalFrames++
 
@@ -274,18 +274,16 @@ class SherpaOfflineArabicEngine(context: Context) {
                     if (rms >= speechThreshold) {
                         if (!speechDetected) {
                             speechDetected = true
-                            firstSpeechSampleIdx = max(0, captured.size - read - SAMPLE_RATE / 3)
+                            firstSpeechSampleIdx = max(0, capturedSamples - read - SAMPLE_RATE / 3)
                             Log.d(TAG, "Speech onset detected at frame=$totalFrames (rms=$rms, thr=$speechThreshold)")
                         }
-                        lastSpeechSampleIdx = captured.size
-                        framesSinceSpeech = 0
+                        lastSpeechSampleIdx = capturedSamples
                     } else if (speechDetected) {
-                        framesSinceSpeech++
-                        if (framesSinceSpeech >= postSpeechSilenceFrames) {
+                        if (capturedSamples - lastSpeechSampleIdx >= END_OF_SPEECH_SILENCE_SAMPLES) {
                             Log.i(TAG, "Auto-stopping after post-speech silence (frames=$totalFrames)")
                             break
                         }
-                    } else if (totalFrames >= maxInitialSilenceFrames) {
+                    } else if (capturedSamples >= INITIAL_SILENCE_SAMPLES) {
                         Log.i(TAG, "No speech detected within initial timeout")
                         break
                     }
@@ -297,7 +295,7 @@ class SherpaOfflineArabicEngine(context: Context) {
                 }
                 audioRecord = null
 
-                if (cancelRequested) return@launch
+                if (!isActive || cancelRequested) return@launch
 
                 // If user tapped stop manually even on quiet voice, still decode what was captured
                 if (!speechDetected && !stopRequested) {
@@ -311,9 +309,9 @@ class SherpaOfflineArabicEngine(context: Context) {
 
                 val startIdx = if (speechDetected) firstSpeechSampleIdx else 0
                 val endIdx = if (speechDetected) {
-                    (lastSpeechSampleIdx + SAMPLE_RATE / 3).coerceAtMost(captured.size)
+                    (lastSpeechSampleIdx + SAMPLE_RATE / 3).coerceAtMost(capturedSamples)
                 } else {
-                    captured.size
+                    capturedSamples
                 }
                 val sliceLen = (endIdx - startIdx).coerceAtLeast(0)
                 if (sliceLen < SAMPLE_RATE / 5) {
@@ -328,12 +326,9 @@ class SherpaOfflineArabicEngine(context: Context) {
                 onStatusText("جاري التحليل محليًا...")
                 onRmsLevel(0f)
 
-                val samples = FloatArray(sliceLen)
-                for (i in 0 until sliceLen) {
-                    samples[i] = captured[startIdx + i]
-                }
+                val samples = captured.copyOfRange(startIdx, endIdx)
 
-                val decodeStart = System.currentTimeMillis()
+                val decodeStart = SystemClock.elapsedRealtime()
                 val stream = engine.createStream()
                 val rawText = try {
                     stream.acceptWaveform(samples, SAMPLE_RATE)
@@ -342,10 +337,16 @@ class SherpaOfflineArabicEngine(context: Context) {
                 } finally {
                     stream.release()
                 }
-                val decodeMs = System.currentTimeMillis() - decodeStart
-                Log.i(TAG, "Sherpa-ONNX offline decode done in ${decodeMs}ms (audio=${sliceLen * 1000 / SAMPLE_RATE}ms)")
+                val decodeMs = SystemClock.elapsedRealtime() - decodeStart
+                val trailingAudioMs = (capturedSamples - lastSpeechSampleIdx) * 1000 / SAMPLE_RATE
+                Log.i(
+                    TAG,
+                    "Sherpa-ONNX offline decode done in ${decodeMs}ms " +
+                        "(audio=${sliceLen * 1000 / SAMPLE_RATE}ms, " +
+                        "trailingAudio=${if (speechDetected) "${trailingAudioMs}ms" else "unknown"})"
+                )
 
-                if (cancelRequested) return@launch
+                if (!isActive || cancelRequested) return@launch
 
                 if (rawText.isNotBlank()) {
                     onResult(rawText)
@@ -358,7 +359,7 @@ class SherpaOfflineArabicEngine(context: Context) {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Sherpa offline recognition error: ${e.message}", e)
-                if (!cancelRequested) {
+                if (isActive && !cancelRequested) {
                     onError(
                         -11,
                         "حدث خطأ في المحرك العربي المحلي: ${e.localizedMessage ?: "خطأ غير متوقع"}",
@@ -418,6 +419,9 @@ class SherpaOfflineArabicEngine(context: Context) {
     companion object {
         private const val TAG = "MyExpensesSherpa"
         const val SAMPLE_RATE = 16000
+        private const val MAX_RECORDING_SAMPLES = SAMPLE_RATE * 12
+        private const val INITIAL_SILENCE_SAMPLES = SAMPLE_RATE * 6500 / 1000
+        private const val END_OF_SPEECH_SILENCE_SAMPLES = SAMPLE_RATE * 900 / 1000
         const val MODEL_DIR_NAME = "offline_asr_ar"
         const val FILE_ENCODER = "encoder.int8.onnx"
         const val FILE_DECODER = "decoder.int8.onnx"

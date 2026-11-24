@@ -142,7 +142,7 @@ private const val MAX_BACKUP_BYTES = 32 * 1024 * 1024
 
 internal fun parseBackup(root: JSONObject): ValidatedBackup {
     require(root.get("app") == "MyExpenses" && (root.get("version") as? Number)?.toDouble() == 1.0) {
-        "Unsupported My Expenses backup format"
+        "Unsupported backup format"
     }
 
     val catArray = root.getJSONArray("categories")

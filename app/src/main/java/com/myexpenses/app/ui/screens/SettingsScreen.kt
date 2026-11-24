@@ -42,9 +42,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.myexpenses.app.BuildConfig
+import com.myexpenses.app.R
 import com.myexpenses.app.data.preferences.SupportedCurrencies
 import com.myexpenses.app.data.preferences.UserPreferences
 import com.myexpenses.app.voice.OfflineSpeechStatus
@@ -76,6 +78,8 @@ fun SettingsScreen(
     onBackupJson: () -> Unit,
     onRestoreJson: () -> Unit
 ) {
+    val appName = stringResource(R.string.app_name)
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 104.dp),
@@ -148,9 +152,9 @@ fun SettingsScreen(
                         )
                         Text(
                             text = if (isArabic) {
-                                "إذا كان هاتفك يدعم ربط الضغط المطوّل على الزر الجانبي بالمساعد الرقمي، اختر مصاريفي كمساعد افتراضي. تختلف خيارات الزر وشاشة القفل حسب الجهاز وإصدار النظام."
+                                "إذا كان هاتفك يدعم ربط الضغط المطوّل على الزر الجانبي بالمساعد الرقمي، اختر $appName كمساعد افتراضي. تختلف خيارات الزر وشاشة القفل حسب الجهاز وإصدار النظام."
                             } else {
-                                "If your phone can open the digital assistant by holding the side button, select My Expenses as the default assistant. Side-button and lock-screen options vary by device and Android version."
+                                "If your phone can open the digital assistant by holding the side button, select $appName as the default assistant. Side-button and lock-screen options vary by device and Android version."
                             },
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -463,8 +467,8 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = if (isArabic) "مصاريفي • الإصدار ${BuildConfig.VERSION_NAME}"
-                    else "My Expenses • ${BuildConfig.VERSION_NAME}",
+                    text = if (isArabic) "$appName • الإصدار ${BuildConfig.VERSION_NAME}"
+                    else "$appName • ${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

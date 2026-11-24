@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MyExpenses"
+rootProject.name = "MONAVOCE"
 include(":app")

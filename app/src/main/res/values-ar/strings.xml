@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">مصاريفي</string>
     <string name="quick_voice_label">تسجيل مصروف بالصوت</string>
     <string name="tile_label">سجّل مصروف</string>
-    <string name="widget_label">مصاريفي - تسجيل صوتي سريع</string>
+    <string name="widget_label">MONAVOCE - تسجيل صوتي سريع</string>
     <string name="shortcut_voice_short">تسجيل صوتي</string>
     <string name="shortcut_voice_long">تسجيل مصروف بالصوت فورًا</string>
     <string name="widget_today_label">مصروفات اليوم</string>
     <string name="widget_tap_to_record">اضغط للتحدث</string>
     <string name="quick_notif_channel_name">اختصار التسجيل السريع</string>
     <string name="quick_notif_channel_desc">إشعار اختياري سريع لبدء تسجيل المصروف بالصوت من شريط الإشعارات أو شاشة القفل</string>
-    <string name="quick_notif_title">مصاريفي | My Expenses</string>
     <string name="quick_notif_body">اضغط لتسجيل مصروف جديد بالصوت</string>
     <string name="quick_notif_action">تسجيل</string>
 </resources>

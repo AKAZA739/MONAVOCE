@@ -56,7 +56,7 @@ sealed class VoiceParseResult {
 }
 
 /**
- * Core offline NLP engine for My Expenses | مصاريفي.
+ * Core offline NLP engine for MONAVOCE.
  * Handles:
  *  - Voice commands (query totals, show period, delete/edit last expense)
  *  - Single & multi-expense extraction from one utterance

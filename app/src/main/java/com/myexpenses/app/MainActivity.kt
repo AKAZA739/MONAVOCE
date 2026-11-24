@@ -226,8 +226,8 @@ class MainActivity : AppCompatActivity() {
                         }
                         result.onSuccess { pendingBackup = it }.onFailure {
                             snackbarHostState.showSnackbar(
-                                if (isArabic) "تعذّرت قراءة نسخة احتياطية صالحة لمصاريفي"
-                                else "Could not read a valid My Expenses backup"
+                                if (isArabic) "تعذّرت قراءة نسخة احتياطية صالحة"
+                                else "Could not read a valid backup"
                             )
                         }
                     }
@@ -427,8 +427,8 @@ class MainActivity : AppCompatActivity() {
                                     arabicModelZipLauncher.launch(arrayOf("application/zip", "application/octet-stream", "*/*"))
                                 },
                                 onOpenSpeechSettings = { QuickLaunchHelper.openVoiceInputSettings(this@MainActivity) },
-                                onExportCsv = { csvExportLauncher.launch("my_expenses_${LocalDate.now()}.csv") },
-                                onBackupJson = { jsonBackupLauncher.launch("my_expenses_backup_${LocalDate.now()}.json") },
+                                onExportCsv = { csvExportLauncher.launch("monavoce_${LocalDate.now()}.csv") },
+                                onBackupJson = { jsonBackupLauncher.launch("monavoce_backup_${LocalDate.now()}.json") },
                                 onRestoreJson = {
                                     if (!restoreBusy) jsonRestoreLauncher.launch(arrayOf("application/json", "*/*"))
                                 }

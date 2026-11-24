@@ -1,8 +1,8 @@
 <div dir="rtl" lang="ar">
 
-# سياسة الخصوصية — مصاريفي
+# سياسة الخصوصية — MONAVOCE
 
-[English](#privacy-policy--my-expenses) · [مصاريفي](README.md)
+[English](#privacy-policy--monavoce) · [MONAVOCE](README.md)
 
 آخر تحديث 22 نوفمبر 2026.
 
@@ -24,7 +24,7 @@
 
 </div>
 
-# Privacy policy — My Expenses
+# Privacy policy — MONAVOCE
 
 Last updated November 22, 2026.
 
