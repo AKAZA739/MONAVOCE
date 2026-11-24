@@ -1,20 +1,16 @@
-<div dir="rtl" lang="ar">
+# Arabic Speech Recognition Model
 
-# نموذج التعرف على الصوت بالعربية
+MONAVOCE uses the Sherpa-ONNX engine with a Gulf Arabic FastConformer model. The model is distributed separately from the app.
 
-يستخدم MONAVOCE محرك Sherpa-ONNX مع نموذج FastConformer للهجة الخليجية. النموذج منفصل عن التطبيق.
+## Source and License
 
-## المصدر والترخيص
+The four model files in the local bundle match revision `6e9acacc41528874b2b560c1776cac611939e256` of **vladadu / stt-ar-fastconformer-gulf-sherpa-onnx**. The model publisher trained the Gulf variant using SADA22 starting from NVIDIA's Arabic FastConformer model. [Model card](https://huggingface.co/vladadu/stt-ar-fastconformer-gulf-sherpa-onnx)
 
-طابقت ملفات النموذج الأربعة في الحزمة المحلية نسخة `6e9acacc41528874b2b560c1776cac611939e256` من نموذج **vladadu / stt-ar-fastconformer-gulf-sherpa-onnx**. درّب ناشر النموذج النسخة الخليجية باستخدام SADA22 انطلاقًا من نموذج FastConformer العربي من NVIDIA. [بطاقة النموذج](https://huggingface.co/vladadu/stt-ar-fastconformer-gulf-sherpa-onnx)
+The weights are licensed under **CC BY-NC-SA 4.0**. The license requires attribution, restricts use and redistribution to non-commercial purposes, and requires ShareAlike licensing when distributing a modified version. For commercial distribution, a model with a permissive license or separate permission is required. [License text](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)
 
-الأوزان مرخّصة بموجب **CC BY-NC-SA 4.0**. يشترط الترخيص نسب المصدر، ويقصر الاستخدام وإعادة التوزيع على الأغراض غير التجارية، ويشترط الترخيص بالمثل عند توزيع نسخة معدّلة. للنشر التجاري، يلزم نموذج يسمح ترخيصه بذلك أو إذن منفصل. [نص الترخيص](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)
+## Import
 
-## الاستيراد
-
-نزّل الملفات الأربعة من [نسخة النموذج المطابَقة](https://huggingface.co/vladadu/stt-ar-fastconformer-gulf-sherpa-onnx/tree/6e9acacc41528874b2b560c1776cac611939e256)، وضعها في ملف ZIP. بعدها اختر **استيراد نموذج العربية المحلي (.zip)** من إعدادات التطبيق.
-
-</div>
+Download the four files from the [matched model revision](https://huggingface.co/vladadu/stt-ar-fastconformer-gulf-sherpa-onnx/tree/6e9acacc41528874b2b560c1776cac611939e256) and place them into a ZIP file. Then choose **Import Offline Arabic Model (.zip)** in the app settings.
 
 | File | SHA-256 |
 | --- | --- |
@@ -23,11 +19,7 @@
 | `joiner.int8.onnx` | `d8ee37bbbe77406ee9d99659747064047b3538f261f2c47431f0274ad3a8344f` |
 | `tokens.txt` | `b5d39b52143723e71d997ed5dd8a68aa5facbd0a7c84a47669f83b0033d33164` |
 
-<div dir="rtl" lang="ar">
-
-الحزمة المحلية التي فُحصت اسمها `MyExpenses-Offline-Arabic-Model.zip` وحجمها 106,106,155 بايت. قد تختلف بصمة ملف ZIP عند إعادة ضغط الملفات نفسها.
-
-</div>
+The tested local bundle is named `MyExpenses-Offline-Arabic-Model.zip` and has a size of 106,106,155 bytes. The ZIP file's hash may differ if the same files are re-compressed.
 
 ```text
 SHA-256: 580be8112133f54859bdf46c1e2894cbc5efae36148187eb6dbe45edc7e27aa8

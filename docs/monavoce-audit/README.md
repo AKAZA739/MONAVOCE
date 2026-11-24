@@ -1,21 +1,10 @@
-<div dir="rtl" lang="ar">
+# MONAVOCE Audit Archive
 
-# أرشيف تدقيق MONAVOCE
+These reports document the state of version 1.3.0 at the time of the audit. Items should be cross-checked against the current codebase before relying on them for release decisions. The Google Play reports cover a separate commercial plan, while the model currently used is governed by the [Arabic model license](../arabic-model.md).
 
-توثّق هذه التقارير حالة الإصدار 1.3.0 عند التدقيق. تُراجع البنود مع الكود الحالي قبل الاعتماد عليها في قرار النشر. تقارير Google Play تتناول خطة تجارية منفصلة، ويخضع النموذج المستخدم فعليًا لشروط [ترخيص النموذج العربي](../arabic-model.md).
-
-- [الملخّص التنفيذي](01-executive-report.md)
-- [الخصوصية والأمان](02-security-privacy.md)
-- [الوظائف والبيانات المالية](03-functional-financial.md)
-- [الصوت والتكامل مع أندرويد](04-voice-android.md)
-- [الواجهة وتجربة المستخدم](05-ui-ux.md)
-- [الهوية](06-brand-identity.md)
-- [الأداء والموثوقية](07-performance-reliability.md)
-- [جاهزية Google Play](08-play-store-readiness.md)
-- [سجل الملاحظات](09-findings-register.md)
-- [خارطة العمل](10-remediation-roadmap.md)
-- [بطاقة الجاهزية](11-production-scorecard.md)
-- [قائمة التحقق للإطلاق](12-release-checklist.md)
-- [مسودة تعليمات التنفيذ السابقة](13-future-implementation-prompt.md)
-
-</div>
+- [Executive Report](01-executive-report.md)
+- [Security & Privacy](02-security-privacy.md)
+- [Functional & Financial Engine](03-functional-financial.md)
+- [Voice & Android Integration](04-voice-android.md)
+- [UI/UX & Accessibility](05-ui-ux.md)
+- [Brand Identity](06-brand-identity.md)

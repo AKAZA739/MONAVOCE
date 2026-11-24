@@ -1,74 +1,70 @@
-<div dir="rtl" lang="ar">
+# 05 — UI/UX, Accessibility & Localization Audit
 
-# 05 — تدقيق واجهة وتجربة المستخدم وإمكانية الوصول والتعريب (UI/UX, Accessibility & Localization Audit)
-
-يفحص هذا التقرير التصميم البصري الحالي، وتجربة المستخدم عبر جميع الشاشات، ومعايير إمكانية الوصول (**WCAG 2.1 / Android Accessibility Guidelines**)، وجودة دعم اللغتين العربية (`RTL`) والإنجليزية (`LTR`).
+This report evaluates the current visual design, end-to-end user experience across screens, **WCAG 2.1 / Android Accessibility Guidelines** compliance, and the quality of Arabic (`RTL`) and English (`LTR`) support.
 
 ---
 
-## 1. التقييم البصري للشاشات الحالية (Screen-by-Screen UI/UX Inspection)
+## 1. Screen-by-Screen UI/UX Inspection
 
-يعتمد التطبيق حاليًا في الإصدار `v1.3.0` على ثيم **Obsidian OLED Dark** ([Theme.kt](../../app/src/main/java/com/myexpenses/app/ui/theme/Theme.kt) و [Theme.kt](../../app/src/main/java/com/myexpenses/app/ui/theme/Theme.kt)) المستوحى من التصميمات المالية الداكنة الفاخرة مع لوحة صوتية كونية متوهجة (**Cosmic Neon Voice Orb**):
+In `v1.3.0`, the app uses an **Obsidian OLED Dark** theme ([Theme.kt](../../app/src/main/java/com/myexpenses/app/ui/theme/Theme.kt)) inspired by premium dark finance interfaces, paired with a glowing **Cosmic Neon Voice Orb**:
 
-### أ. الشاشة الرئيسية (`DashboardScreen.kt`)
-- **نقاط القوة:**
-  - بطاقة نظرة عامة موحدة (`Overview Hero Card`) تجمع محدد الفترة الزمنية (`اليوم / الأسبوع / الشهر / السنة / الكل`)، ومتصفح التاريخ التفاعلي (`Date Navigator` مع أزرار السابق/التالي والعودة لليوم)، وإجمالي الإنفاق بخط عريض واضح (`34.sp, FontWeight.ExtraBold`)، ومخطط أعمدة مصغر لأسابيع الشهر (`W1..W5`)، وشريط أفقي لأعلى 3 فئات إنفاق مع نسبها المئوية.
-  - شريط تنقل سفلي عائم بتصميم الكبسولة (`Floating Pill Dock` في [MainActivity.kt](../../app/src/main/java/com/myexpenses/app/MainActivity.kt)) يتوسطه زر المايكروفون المتوهج مع زر إضافة يدوية سريع.
-- **نقاط الضعف:**
-  - لا يوجد تمييز بصري في قائمة المعاملات لعملة السجل الفردي إذا كانت مختلفة عن العملة الافتراضية (`MONA-FIN-001`).
-  - غياب شاشة تعريفية أولية (`First-Run Onboarding`) تشرح للمستخدم الجديد كيفية تفعيل زر التشغيل الجانبي أو كيفية استيراد النموذج الصوتي الأوفلاين (`MONA-UX-003`).
+### A. Dashboard Screen (`DashboardScreen.kt`)
+- **Strengths:**
+  - Unified `Overview Hero Card` combining the period selector (`Today / Week / Month / Year / All`), interactive `Date Navigator` (Previous/Next arrows and Return to Today), bold spending total (`34.sp, FontWeight.ExtraBold`), mini monthly weekly bar chart (`W1..W5`), and a horizontal bar for the top 3 spending categories with percentages.
+  - Floating pill bottom navigation bar (`Floating Pill Dock` in [MainActivity.kt](../../app/src/main/java/com/myexpenses/app/MainActivity.kt)) centered around the glowing microphone button and quick manual-entry button.
+- **Weaknesses:**
+  - No visual distinction on individual transaction rows when a record's currency differs from the default currency (`MONA-FIN-001`).
+  - Missing `First-Run Onboarding` explaining to new users how to bind the side power button or import the offline Arabic speech model (`MONA-UX-003`).
 
-### ب. اللوحة الصوتية الكونية (`VoiceOverlayPanel.kt` و`QuickVoiceActivity.kt`)
-- **نقاط القوة:**
-  - تصميم بصري مبهر يستخدم `Canvas` لرسم هالات ضوئية متعددة الطبقات (`Cyan #00E5FF` -> `Royal Blue #3B82F6` -> `Magenta #D946EF`) تدور وتنبض في الوقت الفعلي بناءً على شدة صوت المستخدم (`voiceRmsLevel`).
-  - عرض واضح لحالة المحرك (`Sherpa-ONNX 100% Offline Ready` أو زر استيراد ملف `.zip` بضغطة واحدة في حال عدم وجود النموذج).
-- **نقاط الضعف (`MONA-UX-001`):**
-  - الألوان في [VoiceOverlayPanel.kt](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt) ثابتة على الوضع الليلي (`CosmicTopBg = Color(0xFF060714)`, `CosmicBottomBg = Color(0xFF0E122B)`)، وتجاهل كامل لاختيار المستخدم في حال تفعيل **الوضع النهاري (`Light Theme`)**، مما يخلق تناقضًا بصريًا حادًا بين البطاقات الداخلية واللوحة عند استخدام الثيم الفاتح.
+### B. Cosmic Voice Overlay (`VoiceOverlayPanel.kt` & `QuickVoiceActivity.kt`)
+- **Strengths:**
+  - Striking visual design using `Canvas` to render multi-layered glowing rings (`Cyan #00E5FF` -> `Royal Blue #3B82F6` -> `Magenta #D946EF`) that rotate and pulse in real time with voice amplitude (`voiceRmsLevel`).
+  - Clear engine readiness indicator (`Sherpa-ONNX 100% Offline Ready` or a one-tap `.zip` import button if the model is missing).
+- **Weaknesses (`MONA-UX-001`):**
+  - Colors in [VoiceOverlayPanel.kt](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt) are hardcoded to dark mode (`CosmicTopBg = Color(0xFF060714)`, `CosmicBottomBg = Color(0xFF0E122B)`), completely ignoring the user's **Light Theme** setting and creating harsh contrast clashes between inner cards and the panel when Light Mode is active.
 
-### ج. شاشة الإحصائيات (`StatisticsScreen.kt`)
-- **نقاط القوة:**
-  - مخطط دائري مفرغ (`DonutChart`) مرسوم عبر `Canvas` مع إجمالي الإنفاق في المركز، ومخطط أعمدة لآخر 7 أيام، وشريط تقدم لكل فئة مع عدد العمليات والنسبة المئوية.
-  - أزرار تصدير ومشاركة سريعة لملفات `CSV` و`JSON` في أعلى الشاشة.
+### C. Statistics Screen (`StatisticsScreen.kt`)
+- **Strengths:**
+  - Custom `Canvas`-drawn `DonutChart` with total spending at the center, a 7-day bar chart, and progress bars per category showing transaction count and percentage.
+  - Quick `CSV` and `JSON` export/share buttons at the top of the screen.
 
-### د. شاشة الفئات (`CategoriesScreen.kt`) وشاشة الإعدادات (`SettingsScreen.kt`)
-- **نقاط القوة:**
-  - شاشة الفئات توفر محررًا متكاملاً يتيح تخصيص الاسم العربي، الاسم الإنجليزي، الكلمات المفتاحية للتعرف الصوتي، الأيقونة (18 خيارًا)، واللون (12 لونًا).
-  - شاشة الإعدادات توفر قسمًا تفاعليًا لإعداد زر التشغيل الجانبي (`Side Button Assistant`)، وإضافة اختصار الصوت للشاشة الرئيسية، وإدارة النموذج الصوتي الأوفلاين (`130 MB`)، والنسخ الاحتياطي، وتغيير اللغة والعملة والثيم.
-
----
-
-## 2. الملاحظات المسجلة في تجربة المستخدم وإمكانية الوصول (UI/UX & Accessibility Findings)
-
-### 1. `[MONA-UX-001]` (Medium) — ألوان داكنة صلبة (Hardcoded Dark Colors) في `VoiceOverlayPanel` تتجاهل الوضع النهاري
-- **الموقع الدقيق:** [VoiceOverlayPanel.kt](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt) والأسطر [270-303](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt).
-- **الدليل:** تستخدم اللوحة تدرجًا ثابتًا من `#060714` إلى `#0E122B` ونصوصًا بيضاء `Color.White`، بينما البطاقات الداخلية (مثل بطاقة استيراد النموذج أو نتيجة الخطأ في الأسطر 363 و487) تستخدم أحيانًا `MaterialTheme.colorScheme.errorContainer` أو `Color.White.copy(alpha = 0.05f)`.
-- **الإصلاح المقترح:** توحيد نظام رموز الألوان (Design Tokens) في ثيم **MONAVOCE** بحيث تحافظ الكرة الصوتية على توهجها الداكن الفخم داخل حاوية متناغمة مع الوضعين الليلي والنهاري دون تضارب في تباين النصوص.
+### D. Categories (`CategoriesScreen.kt`) & Settings (`SettingsScreen.kt`)
+- **Strengths:**
+  - Categories screen provides a complete editor for Arabic name, English name, voice recognition keywords, icon (18 choices), and color (12 colors).
+  - Settings screen includes an interactive **Side Button Assistant** setup section, home screen voice shortcut pinning, offline voice model management (`130 MB`), backup/restore, and language, currency, and theme selectors.
 
 ---
 
-### 2. `[MONA-UX-002]` (Medium) — فجوات في إمكانية الوصول (TalkBack Accessibility & <48dp Touch Targets)
-- **المواقع الدقيقة:**
-  1. **غياب `contentDescription` لقارئات الشاشة (TalkBack):**
-     - الكرة الصوتية الرئيسية (`CosmicVoiceOrb` في [VoiceOverlayPanel.kt](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt)) تستخدم `.clickable { onClick() }` على `Box` بدون `Role.Button` وبدون `semantics { contentDescription = ... }` (`Icon(..., contentDescription = null)` في السطر 665). مستخدمو قارئ الشاشة المكفوفون—وهم الفئة الأكثر استفادة من تطبيق مالي صوتي!—لا يستطيعون معرفة وظيفة الزر الرئيسي في اللوحة الصوتية.
-     - أزرار تعديل وحذف الفئات في [CategoriesScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/CategoriesScreen.kt) تمرر `contentDescription = null`.
-     - أزرار التنقل بين التواريخ في [DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt) تمرر `contentDescription = null`.
-  2. **مساحات لمس أصغر من الحد الأدنى القياسي (`48.dp x 48.dp`):**
-     - زر حذف المصروف في بطاقة المعاملة ([DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt)): `Modifier.size(26.dp)` — صغير جدًا وعرضة للنقرات الخاطئة على فتح التعديل بدل الحذف.
-     - أزرار تقديم وتأخير التاريخ ([DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt)): `Modifier.size(30.dp)`.
-     - دوائر اختيار لون الفئة ([CategoriesScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/CategoriesScreen.kt)): `Modifier.size(30.dp)`.
+## 2. UI/UX & Accessibility Findings
+
+### 1. `[MONA-UX-001]` (Medium) — Hardcoded Dark Colors in `VoiceOverlayPanel` Ignore Light Theme
+- **Exact Location:** [VoiceOverlayPanel.kt](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt), lines [270-303](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt).
+- **Evidence:** The panel uses a fixed `#060714` to `#0E122B` gradient and `Color.White` text, while inner cards (such as the model import card or error state at lines 363 and 487) mix in `MaterialTheme.colorScheme.errorContainer` or `Color.White.copy(alpha = 0.05f)`.
+- **Recommended Fix:** Unify design tokens under the **MONAVOCE** theme so the voice orb retains its luminous depth inside a container that harmonizes properly with both Dark and Light themes without text contrast conflicts.
 
 ---
 
-### 3. `[MONA-UX-003]` (Low) — غياب رحلة الترحيب والإعداد الأولي للمستخدم الجديد (First-Run Onboarding Flow)
-- **التحليل:** عند تثبيت التطبيق لأول مرة، يدخل المستخدم مباشرة إلى الشاشة الرئيسية الفارغة دون معرفة:
-  1. كيفية صياغة الجمل الصوتية المدعومة (مثل إمكانية قول عدة مصاريف في جملة واحدة أو قول `"احذف آخر مصروف"`).
-  2. حالة محرك الصوت العربي الأوفلاين وكيفية تفعيله في ثوانٍ.
-  3. كيفية ربط زر التشغيل الجانبي (`Side Button`) لفتح النافذة الصوتية فورًا من خارج التطبيق.
+### 2. `[MONA-UX-002]` (Medium) — TalkBack Accessibility Gaps & Touch Targets Smaller Than `48dp`
+- **Exact Locations:**
+  1. **Missing `contentDescription` for Screen Readers (TalkBack):**
+     - The main `CosmicVoiceOrb` in [VoiceOverlayPanel.kt](../../app/src/main/java/com/myexpenses/app/ui/components/VoiceOverlayPanel.kt) uses `.clickable { onClick() }` on a `Box` without `Role.Button` or `semantics { contentDescription = ... }` (`Icon(..., contentDescription = null)` at line 665). Blind screen-reader users—who stand to benefit most from a voice-first finance app—cannot tell what the primary voice orb button does.
+     - Category edit and delete buttons in [CategoriesScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/CategoriesScreen.kt) pass `contentDescription = null`.
+     - Date navigation buttons in [DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt) pass `contentDescription = null`.
+  2. **Touch Targets Below Standard Minimum (`48.dp x 48.dp`):**
+     - Delete expense button in transaction cards ([DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt)): `Modifier.size(26.dp)` — too small and prone to accidentally triggering edit instead of delete.
+     - Date stepper buttons ([DashboardScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/DashboardScreen.kt)): `Modifier.size(30.dp)`.
+     - Category color swatches ([CategoriesScreen.kt](../../app/src/main/java/com/myexpenses/app/ui/screens/CategoriesScreen.kt)): `Modifier.size(30.dp)`.
 
 ---
 
-### 4. `[MONA-UX-004]` (Low) — تضمين النصوص ثنائية اللغة شرطيًا داخل كود Compose (`if (isArabic) ... else ...`) بدل ملفات الموارد `strings.xml`
-- **الموقع الدقيق:** جميع ملفات `ui/screens/*.kt` و`ui/components/*.kt`.
-- **التحليل:** تبديل اللغة عبر `CompositionLocalProvider(LocalLayoutDirection provides layoutDirection)` في [MainActivity.kt](../../app/src/main/java/com/myexpenses/app/MainActivity.kt) يتميز بسرعة استجابة فورية (Zero Activity Recreation)، لكن كتابة النصوص داخل الكود المصدري عبر `if (isArabic) "..." else "..."` يصعّب إضافة لغات عالمية جديدة (مثل الفرنسية، الإسبانية، التركية، الأردية) في التوسع العالمي لعلامة **MONAVOCE**.
+### 3. `[MONA-UX-003]` (Low) — Missing First-Run Onboarding Flow
+- **Analysis:** On first launch, the user lands directly on an empty dashboard without guidance on:
+  1. Supported voice command syntax (e.g., logging multiple expenses in one phrase or saying `"delete last expense"`).
+  2. The status of the offline Arabic speech engine and how to activate it in seconds.
+  3. How to bind the hardware `Side Button` to launch the voice overlay immediately from outside the app.
 
-</div>
+---
+
+### 4. `[MONA-UX-004]` (Low) — Inline Conditional Bilingual Strings in Compose (`if (isArabic) ... else ...`) Instead of `strings.xml` Resources
+- **Exact Location:** All `ui/screens/*.kt` and `ui/components/*.kt` files.
+- **Analysis:** Switching language via `CompositionLocalProvider(LocalLayoutDirection provides layoutDirection)` in [MainActivity.kt](../../app/src/main/java/com/myexpenses/app/MainActivity.kt) delivers instant responsiveness (Zero Activity Recreation), but hardcoding strings inline with `if (isArabic) "..." else "..."` makes adding additional global languages (e.g., French, Spanish, Turkish, Urdu) harder as **MONAVOCE** expands internationally.

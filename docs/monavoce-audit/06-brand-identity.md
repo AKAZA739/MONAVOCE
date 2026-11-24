@@ -1,87 +1,81 @@
-<div dir="rtl" lang="ar">
+# 06 — Global Brand Identity & Material 3 Design System (MONAVOCE)
 
-# 06 — نظام الهوية البصرية والعلامة التجارية العالمية (MONAVOCE Brand Identity & Material 3 Design System)
-
-يقدم هذا المستند المواصفات التصميمية والهندسية الكاملة لتحويل التطبيق من هويته التجريبية الحالية (`My Expenses | مصاريفي`) إلى العلامة التجارية العالمية المعتمدة:
+This document defines the complete design and engineering specification for transforming the app from its provisional identity (`My Expenses`) to the approved global brand:
 
 # **MONAVOCE**
-### **موناڤوتشي**
 
 ---
 
-## 1. الاستراتيجية والتموضع وهوية العلامة (Brand Strategy & Positioning)
+## 1. Brand Strategy & Positioning
 
-### أ. أصل الاسم وفلسفته (Etymology & Core Concept)
-- **MONA** (*Moneta*): الجذر اللاتيني للمال، العملة، والقيمة المالية المحفوظة.
-- **VOCE** (*Voce*): الكلمة الإيطالية/اللاتينية للصوت البشري، النبرة، والتعبير الحي.
-- **المعنى المركب:** **"صوت المال" (The Voice of Money)** — إدارة مالية شخصية فورية تقودها نبرة صوتك، بخصوصية مطلقة على جهازك ودون اتصال بالإنترنت.
+### A. Etymology & Core Concept
+- **MONA** (*Moneta*): The Latin root for money, currency, and stored financial value.
+- **VOCE** (*Voce*): The Italian/Latin word for the human voice, tone, and living expression.
+- **Combined Meaning:** **"The Voice of Money"** — instant personal finance management driven by your voice, with absolute privacy on your device and zero internet dependency.
 
-### ب. الشخصية والشعار اللفظي (Brand Personality & Taglines)
-- **شخصية العلامة:** فاخرة (Premium)، عالمية (International)، رصينة وبسيطة (Minimal)، موثوقة (Trustworthy)، متقنة (Sophisticated)، ومبتكرة (Innovative).
-- **الشعار اللفظي بالإنجليزية (Primary English Taglines):**
+### B. Brand Personality & Taglines
+- **Brand Personality:** Premium, International, Minimal, Trustworthy, Sophisticated, and Innovative.
+- **Primary Taglines:**
   - *Speak Your Spend. Private by Design.*
   - *Your Financial Voice. 100% On-Device.*
-- **الشعار اللفظي بالعربية (Primary Arabic Taglines):**
-  - **موناڤوتشي — صوتك المالي، بخصوصية مطلقة.**
-  - **تحدّث بمصروفك.. يُحفظ في لحظة دون إنترنت.**
 
-### ج. فحص المشهد التنافسي للاسم (Naming Landscape Verification)
-- أظهر البحث في متجر Google Play والسوق العالمي عدم وجود أي تطبيق مالي يحمل الاسم المطابق **`MONAVOCE`** أو **`موناڤوتشي`** (توجد فقط أسماء متقاربة صوتيًا مثل `Monavo` و`MonAi` و`Monivo`).したがって، فإن اسم **MONAVOCE** متفرد ويمتلك قابلية عالية للتسجيل كعلامة تجارية مميزة، شريطة تغيير معرف الحزمة البرمجي من `com.myexpenses.app` إلى **`com.monavoce.app`** (`MONA-PLAY-001`).
+### C. Naming Landscape Verification
+- Checks across Google Play and global markets found no existing finance app using the exact name **`MONAVOCE`** (only phonetically adjacent names such as `Monavo`, `MonAi`, and `Monivo`). Therefore, **MONAVOCE** is distinctive and strongly registrable as a trademark, provided the software package ID is changed from `com.myexpenses.app` to **`com.monavoce.app`** (`MONA-PLAY-001`).
 
 ---
 
-## 2. الاتجاه البصري للشعار والأيقونة (Logo & Symbolic Direction)
+## 2. Logo & Symbolic Direction
 
-### مفهوم الشعار: **"موجة العملة الصوتية" (The Sonic Coin / Monogram MV Wave)**
-بدلاً من أيقونة الميكروفون التقليدية أو رمز الدولار المستهلك، يدمج شعار **MONAVOCE** بين:
-1. **حرف `M` الهندسي المتماثل** الذي تتشكل قمتاه الوسطيان على هيئة **نبضة موجية صوتية (Acoustic Waveform)** تنحدر لتشكل حرف **`V`** في القلب.
-2. **الحلقة السيادية المحيطة (Sovereign Vault Ring):** دائرة فائقة النعومة تحيط بالموجة، ترمز في آنٍ واحد إلى **العملة النقدية (Moneta)**، و**الدرع المحلي المغلق (Zero-Cloud Privacy Vault)**، و**الهالة الصوتية النابضة (Voce Orb)**.
+### Logo Concept: **"The Sonic Coin / Monogram MV Wave"**
+Rather than a generic microphone icon or an overused dollar sign, the **MONAVOCE** mark combines:
+1. **A symmetrical geometric letter `M`** whose center peaks form an **Acoustic Waveform** dipping into a central **`V`**.
+2. **Sovereign Vault Ring:** A clean, refined outer circle enclosing the waveform—simultaneously representing a **Coin (Moneta)**, a **Zero-Cloud Privacy Vault**, and the **Pulsing Voice Orb (Voce Orb)**.
 
 ---
 
-## 3. نظام الألوان المعتمد (MONAVOCE Color Palette & Material 3 Tokens)
+## 3. Approved Color System (MONAVOCE Color Palette & Material 3 Tokens)
 
-يحافظ نظام الألوان المقترح لـ **MONAVOCE** على الهوية الفخمة التي اختارها المستخدم (**Obsidian OLED + Soft Periwinkle + Sonic Cyan/Violet Orb**) مع صقلها بمعايير التباين العالمية (**WCAG AAA / AA**) وتوفير وضع نهاري متكامل (**Alabaster Vault Light Theme**) يعالج الخلل `MONA-UX-001`.
+The proposed **MONAVOCE** palette preserves the user's preferred luxury aesthetic (**Obsidian OLED + Soft Periwinkle + Sonic Cyan/Violet Orb**) while refining contrast to international standards (**WCAG AAA / AA**) and adding a cohesive light theme (**Alabaster Prestige**) to resolve `MONA-UX-001`.
 
-### أ. الوضع الليلي الرئيسي — **"Obsidian Vault"** (Default Premium Dark Theme)
+### A. Primary Dark Theme — **"Obsidian Vault"** (Default Premium Dark Theme)
 
-| الرمز (Token Name) | كود HEX | الاستخدام المعماري في Material 3 / Compose |
+| Token Name | HEX Code | Material 3 / Compose Role |
 |---|---|---|
-| `MonaObsidianBg` | `#07080D` | `background` — خلفية الشاشات الرئيسية المتوافقة مع شاشات AMOLED. |
-| `MonaSurface1` | `#11131C` | `surface` — خلفية البطاقات القياسية (`ExpenseListItemCard`, `CategoryCard`). |
-| `MonaSurface2` | `#171A26` | `surfaceVariant` — بطاقة النظرة العامة الرئيسية (`Overview Hero Card`) وشريط التنقل العائم. |
-| `MonaSurfaceElevated` | `#1F2333` | الحاويات الفرعية، أزرار التبديل الزمنية (`Segmented Pills`)، وحقول البحث. |
-| `MonaBorderSubtle` | `#272B3F` | `outlineVariant` — حدود البطاقات الرفيعة (`1.dp`) لإبراز العمق الزجاجي. |
-| `MonaPrimaryPeriwinkle` | `#8E8FFA` | `primary` — اللون الرئيسي للعلامة (الأعمدة البيانية، المؤشرات النشطة، الأزرار الرئيسية). |
-| `MonaPrimaryContainer` | `#23254B` | `primaryContainer` — خلفية العناصر النشطة في شريط التنقل السفلي. |
-| `MonaSonicCyan` | `#00E5FF` | `secondary` — اللون الصوتي النابض لحلقة الاستماع النشطة ومؤشر الأوفلاين. |
-| `MonaSonicMagenta` | `#D946EF` | `tertiary` — الطيف اللوني المكمل لهالة الكرة الصوتية (`Cosmic Voice Orb`). |
-| `MonaGoldSovereign` | `#F5B041` | لون التمييز المالي للعملات والميزانيات والتنبيهات القيّمة. |
-| `MonaEmeraldSuccess` | `#10B981` | حالة جاهزية النموذج الصوتي (`100% Offline Ready`) ورسائل الحفظ الناجح. |
-| `MonaCoralDanger` | `#F43F5E` | `error` — حالة الحذف، تجاوز الميزانية، أو أخطاء الميكروفون. |
-| `MonaTextPrimary` | `#F4F5FA` | `onBackground` / `onSurface` — الأرقام المالية والعناوين الرئيسية (تباين `17.8:1` AAA). |
-| `MonaTextSecondary` | `#9CA3C2` | `onSurfaceVariant` — التسميات الفرعية، التواريخ، والنسب المئوية (تباين `7.4:1` AAA). |
+| `MonaObsidianBg` | `#07080D` | `background` — AMOLED-friendly primary screen background. |
+| `MonaSurface1` | `#11131C` | `surface` — Standard card background (`ExpenseListItemCard`, `CategoryCard`). |
+| `MonaSurface2` | `#171A26` | `surfaceVariant` — `Overview Hero Card` and floating navigation dock. |
+| `MonaSurfaceElevated` | `#1F2333` | Nested containers, `Segmented Pills`, and search fields. |
+| `MonaBorderSubtle` | `#272B3F` | `outlineVariant` — Hairline card borders (`1.dp`) for subtle glass depth. |
+| `MonaPrimaryPeriwinkle` | `#8E8FFA` | `primary` — Primary brand accent (chart bars, active indicators, primary buttons). |
+| `MonaPrimaryContainer` | `#23254B` | `primaryContainer` — Active item pill background in bottom navigation. |
+| `MonaSonicCyan` | `#00E5FF` | `secondary` — Acoustic cyan for the active listening ring and offline indicator. |
+| `MonaSonicMagenta` | `#D946EF` | `tertiary` — Complementary spectrum accent for the `Cosmic Voice Orb`. |
+| `MonaGoldSovereign` | `#F5B041` | Financial highlight color for currencies, budgets, and key badges. |
+| `MonaEmeraldSuccess` | `#10B981` | Voice model readiness (`100% Offline Ready`) and save confirmation states. |
+| `MonaCoralDanger` | `#F43F5E` | `error` — Delete actions, budget overruns, and microphone errors. |
+| `MonaTextPrimary` | `#F4F5FA` | `onBackground` / `onSurface` — Financial amounts and primary headings (`17.8:1` AAA contrast). |
+| `MonaTextSecondary` | `#9CA3C2` | `onSurfaceVariant` — Subtitles, dates, and percentages (`7.4:1` AAA contrast). |
 
-### ب. الوضع النهاري — **"Alabaster Prestige"** (Harmonized Light Theme)
+### B. Light Theme — **"Alabaster Prestige"** (Harmonized Light Theme)
 
-| الرمز (Token Name) | كود HEX | الاستخدام المعماري في Material 3 / Compose |
+| Token Name | HEX Code | Material 3 / Compose Role |
 |---|---|---|
-| `MonaLightBg` | `#F6F7FB` | `background` — خلفية نهارية دافئة مريحة للعين. |
-| `MonaLightSurface1` | `#FFFFFF` | `surface` — بطاقات المعاملات البيضاء النقية. |
-| `MonaLightSurface2` | `#ECEEFA` | `surfaceVariant` — الحاويات الفرعية ومحددات الفترات. |
-| `MonaLightBorder` | `#DCE0F2` | `outlineVariant` — حدود البطاقات النهارية. |
-| `MonaLightPrimary` | `#4F46E5` | `primary` — نيلي ملكي عميق يحقق تباين `7.2:1` على الخلفية الفاتحة. |
-| `MonaLightTextPrimary` | `#0D1021` | `onBackground` — الأرقام المالية والعناوين الداكنة. |
-| `MonaLightTextSecondary` | `#52587A` | `onSurfaceVariant` — النصوص الفرعية والتواريخ. |
+| `MonaLightBg` | `#F6F7FB` | `background` — Warm, eye-friendly light canvas. |
+| `MonaLightSurface1` | `#FFFFFF` | `surface` — Crisp white transaction cards. |
+| `MonaLightSurface2` | `#ECEEFA` | `surfaceVariant` — Nested containers and period selectors. |
+| `MonaLightBorder` | `#DCE0F2` | `outlineVariant` — Light-mode card borders. |
+| `MonaLightPrimary` | `#4F46E5` | `primary` — Deep royal indigo delivering `7.2:1` contrast on light surfaces. |
+| `MonaLightTextPrimary` | `#0D1021` | `onBackground` — Dark financial figures and headings. |
+| `MonaLightTextSecondary` | `#52587A` | `onSurfaceVariant` — Secondary labels and dates. |
 
 ---
 
-## 4. نظام الخطوط والطباعة المالية (Typography & Numeric System)
+## 4. Typography & Numeric System
 
-في تطبيق مالي ثنائي اللغة، يجب أن تصطف الأرقام عموديًا بدقة (`Tabular Figures`) وألا تتغير سماكة الحروف بين العربية والإنجليزية:
-- **الخط العربي المقترح:** **`IBM Plex Sans Arabic`** أو **`Cairo`** (مدمج كـ downloadable/bundled font في `res/font/`).
-- **الخط اللاتيني والأرقام:** **`Plus Jakarta Sans`** أو **`Inter`** مع تفعيل ميزة `fontFeatureSettings = "tnum"` (Tabular Numbers) لجميع المبالغ المالية والنسب المئوية.
-- **مقياس الأحجام المعتمد (`MonaTypography`):**
+In a bilingual finance app, figures must align cleanly in columns (`Tabular Figures`) and weights must stay visually balanced between Arabic and English:
+- **Recommended Arabic Typeface:** **`IBM Plex Sans Arabic`** or **`Cairo`** (bundled/downloadable font in `res/font/`).
+- **Recommended Latin & Numeric Typeface:** **`Plus Jakarta Sans`** or **`Inter`** with `fontFeatureSettings = "tnum"` (Tabular Numbers) enabled on all monetary amounts and percentages.
+- **Approved Type Scale (`MonaTypography`):**
   - `Hero Financial Total`: `34.sp`, `FontWeight.ExtraBold`, `letterSpacing = (-0.5).sp`, `fontFeatureSettings = "tnum"`.
   - `Screen Title`: `20.sp`, `FontWeight.Bold`.
   - `Card Amount`: `16.sp`, `FontWeight.Bold`, `fontFeatureSettings = "tnum"`.
@@ -90,21 +84,19 @@
 
 ---
 
-## 5. مواصفات إعادة تصميم الشاشات تحت هوية MONAVOCE
+## 5. Screen Redesign Specifications Under MONAVOCE
 
-1. **الترويسة العلوية (`MONAVOCE Brand Header`):**
-   - استبدال النص المؤقت `"My Expenses"` في شاشة الإعدادات وترويسة التطبيق بشعار **MONAVOCE** مع شارة حالة الخصوصية:
-     `🔒 100% On-Device Voice Vault` / `🔒 خزنة صوتية محلية 100%`.
-2. **اللوحة الصوتية (`MONAVOCE Sonic Sheet`):**
-   - الاحتفاظ بالكرة الصوتية المتوهجة (`CosmicVoiceOrb`) التي أحبها المستخدم، مع إضافة:
-     - شرائح أمثلة تفاعلية قابلة للنقر أو القراءة (`"قهوة 500 وبنزين 3000"`, `"احذف آخر مصروف"`).
-     - دعم كامل لقارئ الشاشة TalkBack (`contentDescription` واضح لكل حالة: `جاري الاستماع`، `جاري التحليل`، `اضغط للتحدث`).
-     - توافق ألوان البطاقات الفرعية مع الوضعين الليلي والنهاري.
-3. **أيقونة التطبيق التكيفية (`Adaptive Launcher Icon` — Android 8.0+ / Android 13+ Monochrome):**
-   - **الطبقة الخلفية (`ic_launcher_background.xml`):** تدرج قطري عميق من `#07080D` إلى `#131629` مع توهج مركزي خفيف `#1E2246`.
-   - **الطبقة الأمامية (`ic_launcher_foreground.xml`):** رمز **MV Sonic Wave** محاطًا بحلقة متدرجة من `#00E5FF` عبر `#8E8FFA` إلى `#D946EF`.
-   - **الطبقة أحادية اللون (`ic_launcher_monochrome.xml`):** نسخة خطية نظيفة من رمز **MV Sonic Wave** لدعم أيقونات Material You الملونة في Android 13–16.
-4. **شاشة البداية (`Android 12+ SplashScreen API`):**
-   - خلفية `#07080D` مع أيقونة **MONAVOCE** في المركز بدون تأخير مصطنع، تفتح الشاشة الرئيسية فورًا في أقل من `350ms`.
-
-</div>
+1. **Brand Header (`MONAVOCE Brand Header`):**
+   - Replace the temporary `"My Expenses"` text in Settings and the app header with the **MONAVOCE** wordmark and privacy badge:
+     `🔒 100% On-Device Voice Vault`.
+2. **Voice Sheet (`MONAVOCE Sonic Sheet`):**
+   - Keep the signature `CosmicVoiceOrb` while adding:
+     - Interactive example prompt chips (`"Coffee 500 and petrol 3000"`, `"Delete last expense"`).
+     - Full TalkBack accessibility support (clear `contentDescription` for every state: `Listening`, `Analyzing`, `Tap to speak`).
+     - Harmonized inner card colors across both Dark and Light themes.
+3. **Adaptive Launcher Icon (`Adaptive Launcher Icon` — Android 8.0+ / Android 13+ Monochrome):**
+   - **Background layer (`ic_launcher_background.xml`):** Deep diagonal gradient from `#07080D` to `#131629` with a subtle center glow `#1E2246`.
+   - **Foreground layer (`ic_launcher_foreground.xml`):** **MV Sonic Wave** emblem surrounded by a gradient ring from `#00E5FF` through `#8E8FFA` to `#D946EF`.
+   - **Monochrome layer (`ic_launcher_monochrome.xml`):** Clean line-art version of **MV Sonic Wave** for Material You themed icons on Android 13–16.
+4. **Splash Screen (`Android 12+ SplashScreen API`):**
+   - `#07080D` background with centered **MONAVOCE** icon and zero artificial delay, opening the dashboard in under `350ms`.
